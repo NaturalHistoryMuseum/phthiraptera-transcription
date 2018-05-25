@@ -16,6 +16,7 @@ app.get('/', async (req, res) => {
 <head>
   <meta charset="utf-8">
   <title>Anoplura Transcriptions</title>
+  <link rel="stylesheet" href="/index.css" />
 </head>
 
 <body>
