@@ -1,0 +1,19 @@
+{
+  "name": "anoplura-transcriptions",
+  "version": "1.0.0",
+  "description": "Transcribe anoplura data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "Natural History Museum",
+  "license": "ISC",
+  "private": true,
+  "engines": {
+    "node": "10.0.0"
+  },
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}
