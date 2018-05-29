@@ -6,6 +6,8 @@ const app = express();
 
 app.use(auth);
 
+app.use('/api', require('./api'));
+
 app.use(express.static('dist'));
 
 app.get('/', async (req, res) => {
