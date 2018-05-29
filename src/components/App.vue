@@ -5,7 +5,7 @@
       <div>Anoplura Data Cleaning Tool</div>
     </nav>
 
-    <Transcription />
+    <Transcription class="App__transcription" :record="record" />
   </div>
 </template>
 
@@ -16,7 +16,8 @@ export default {
   components: {
     Transcription
   },
-  name: 'app'
+  name: 'app',
+  props: ['record']
 }
 </script>
 
@@ -49,5 +50,9 @@ html, body {
 
 .App__nav > * {
   margin: 7px;
+}
+
+.App__transcription {
+  flex: 1;
 }
 </style>

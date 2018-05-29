@@ -1,17 +1,20 @@
 <template>
   <div class="Transcription">
-    <div class="Transcription__images">Transcription</div>
+    <TImage class="Transcription__images" :src="record.asset_id" />
     <Form />
   </div>
 </template>
 
 <script>
 import Form from './Form.vue';
+import TImage from './Image.vue';
 
 export default {
   components: {
-    Form
-  }
+    Form,
+    TImage
+  },
+  props: ['record']
 }
 </script>
 
@@ -22,7 +25,7 @@ export default {
   display: flex;
 }
 
-.Transcription__images {
-  flex: 1;
+.Transcription > * {
+  flex: 1 1 50%;
 }
 </style>

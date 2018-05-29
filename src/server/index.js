@@ -1,24 +1,29 @@
 const express = require('express');
 const auth = require('./auth');
 const render = require('./render');
+const { app: api, nextAsset } = require('./api');
 
 const app = express();
 
 app.use(auth);
 
-app.use('/api', require('./api'));
+app.use('/api', api);
 
 app.use(express.static('dist'));
 
-app.get('/', async (req, res) => {
+app.get('/', async (req, res, next) => {
   try {
-    const html = await render();
+    const data = await nextAsset();
+    const html = await render({ data });
     res.send(`<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Anoplura Transcriptions</title>
   <link rel="stylesheet" href="/index.css" />
+  <script>
+    window.__DATA__ = ${JSON.stringify(data)};
+  </script>
 </head>
 
 <body>

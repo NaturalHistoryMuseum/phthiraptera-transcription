@@ -7,23 +7,33 @@ const client = new Client({
   database: 'postgres'
 });
 
+const nextAsset = async () => {
+  try {
+    await client.connect();
+
+    var { rows: [row] } = await client.query(`
+      select * from images where asset_id is not null limit 1;
+    `);
+  } finally {
+    await client.end();
+  }
+
+  return row;
+}
+
 const app = express.Router();
 
 app.use(async (req, res, next) => {
   try {
-    await client.connect();
-
-    const { rows } = await client.query(`
-      select * from images where asset_id is not null limit 1;
-    `);
-
-    res.json(rows[0]);
+    res.json(await nextAsset());
   } catch(e) {
-    console.log(e)
     next(e)
   } finally {
-    client.end();
+
   }
 });
 
-module.exports = app;
+module.exports = {
+  app,
+  nextAsset
+};
