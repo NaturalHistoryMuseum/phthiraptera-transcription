@@ -1,7 +1,9 @@
 <template>
   <div class="Transcription">
-    <TImage class="Transcription__images" :src="record.asset_id" />
-    <Form :barcode="record.barcode" />
+    <div class="Transcription__images">
+      <TImage v-for="record in records" :src="record.asset_id" :key="record.asset_id" />
+    </div>
+    <Form :barcode="records[0].barcode" />
   </div>
 </template>
 
@@ -14,7 +16,7 @@ export default {
     Form,
     TImage
   },
-  props: ['record']
+  props: ['records']
 }
 </script>
 
@@ -27,5 +29,14 @@ export default {
 
 .Transcription > * {
   flex: 1 1 50%;
+}
+
+.Transcription__images {
+  display: flex;
+  flex-direction: column;
+}
+
+.Transcription__images > * {
+  flex: 1;
 }
 </style>

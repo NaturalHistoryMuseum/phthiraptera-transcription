@@ -5,7 +5,7 @@
       <div>Anoplura Data Cleaning Tool</div>
     </nav>
 
-    <Transcription class="App__transcription" :record="record" />
+    <Transcription class="App__transcription" :records="record" />
   </div>
 </template>
 

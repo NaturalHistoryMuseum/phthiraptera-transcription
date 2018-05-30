@@ -40,13 +40,17 @@ module.exports = {
     return query(client)`INSERT INTO fields (barcode) VALUES(${data.barcode});`
   }),
   nextAsset: connect(async (client) => {
-   return (await query(client)`
+   const { rows } = await query(client)`
       SELECT images.*
       FROM images
         LEFT JOIN fields ON images.barcode = fields.barcode
       WHERE images.asset_id IS NOT NULL
         AND fields.barcode IS NULL;
-    `).rows[0]
+    `
+    const bc =
+      //(rows.find(r => r.label === "image 2")).barcode
+      rows[0].barcode
+    return rows.filter(row => row.barcode === bc);
   }
   )
 }
