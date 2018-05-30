@@ -5,7 +5,7 @@ const { Client } = require('pg');
 
 const app = express.Router();
 
-app.get(async (req, res, next) => {
+app.get('/', async (req, res, next) => {
   try {
     res.json(await nextAsset());
   } catch(e) {
@@ -14,9 +14,9 @@ app.get(async (req, res, next) => {
 });
 
 app.use(bodyParser.json());
-app.post(async (req, res, next) => {
+app.post('/', async (req, res, next) => {
   try {
-    res.json(await saveTranscription(req.data));
+    res.json(await saveTranscription(req.body));
   } catch(e) {
     next(e)
   }

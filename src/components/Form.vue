@@ -1,5 +1,5 @@
 <template>
-  <form class="Form" method="POST">
+  <form ref="form" class="Form" method="POST" @submit="transcribe">
     <input type="hidden" name="barcode" :value="barcode">
     <label class="Form__label">
       Locality
@@ -36,7 +36,20 @@
 
 <script>
 export default {
-  props: ['barcode']
+  props: ['barcode'],
+  inject: ['eventBus'],
+  methods: {
+    transcribe(event){
+      const payload = {};
+      for (const el of event.target.elements) {
+        if(el.name) {
+          payload[el.name] = el.value;
+        }
+      }
+      this.eventBus.$emit('transcribe', payload)
+      event.preventDefault();
+    }
+  }
 }
 </script>
 

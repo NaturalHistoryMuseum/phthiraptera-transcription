@@ -3,6 +3,7 @@
     <div>
       <button @click="rotateBy(-1)">&lt;-</button>
       <button @click="rotateBy(1)">-></button>
+      {{ loading ? 'Loading...' : '' }}
     </div>
     <canvas ref="canvas" class="Image__canvas"></canvas>
   </div>
@@ -15,7 +16,8 @@ export default {
       rotate: 0,
       zoom: 1,
       origin: 0,
-      ctx: null
+      ctx: null,
+      loading: true
     }
   },
   props: ['src'],
@@ -25,6 +27,19 @@ export default {
         d += 4;
       }
       this.rotate = (this.rotate + d) % 4;
+    },
+    loadImage() {
+      this.loading = true;
+      const image = new Image;
+      this.image = image;
+      image.src = 'http://www.nhm.ac.uk/services/media-store/asset/' + this.src + '/contents/preview';
+      image.onload = () => {
+        this.loading = false;
+        const canvas = this.$refs.canvas;
+        const ctx = canvas.getContext('2d');
+        this.ctx = ctx;
+        this.draw();
+      }
     },
     draw() {
       const canvas = this.$refs.canvas;
@@ -57,19 +72,14 @@ export default {
     }
   },
   mounted() {
-    const image = new Image;
-    this.image = image;
-    image.src = 'http://www.nhm.ac.uk/services/media-store/asset/' + this.src + '/contents/preview';
-    image.onload = () => {
-      const canvas = this.$refs.canvas;
-      const ctx = canvas.getContext('2d');
-      this.ctx = ctx;
-      this.draw();
-    }
+    this.loadImage()
   },
   watch: {
     rotate(val) {
       this.draw();
+    },
+    src() {
+      this.loadImage();
     }
   }
 }
