@@ -1,39 +1,25 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+const { nextAsset, saveTranscription } = require('./database')
 const { Client } = require('pg');
-
-const client = new Client({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'postgres'
-});
-
-const nextAsset = async () => {
-  try {
-    await client.connect();
-
-    var { rows: [row] } = await client.query(`
-      select * from images where asset_id is not null limit 1;
-    `);
-  } finally {
-    await client.end();
-  }
-
-  return row;
-}
 
 const app = express.Router();
 
-app.use(async (req, res, next) => {
+app.get(async (req, res, next) => {
   try {
     res.json(await nextAsset());
   } catch(e) {
     next(e)
-  } finally {
-
   }
 });
 
-module.exports = {
-  app,
-  nextAsset
-};
+app.use(bodyParser.json());
+app.post(async (req, res, next) => {
+  try {
+    res.json(await saveTranscription(req.data));
+  } catch(e) {
+    next(e)
+  }
+});
+
+module.exports = app;

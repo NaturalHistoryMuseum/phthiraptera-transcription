@@ -1,5 +1,6 @@
 <template>
-  <form class="Form">
+  <form class="Form" method="POST">
+    <input type="hidden" name="barcode" :value="barcode">
     <label class="Form__label">
       Locality
       <input class="Form__input">
@@ -33,7 +34,11 @@
   </form>
 </template>
 
-<script></script>
+<script>
+export default {
+  props: ['barcode']
+}
+</script>
 
 <style>
 .Form {

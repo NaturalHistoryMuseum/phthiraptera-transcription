@@ -1,15 +1,29 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const auth = require('./auth');
 const render = require('./render');
-const { app: api, nextAsset } = require('./api');
+const api = require('./api');
+const { nextAsset, saveTranscription } = require('./api/database');
 
 const app = express();
-
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(auth);
 
 app.use('/api', api);
 
 app.use(express.static('dist'));
+
+
+app.post('/', async (req, res, next) => {
+  try {
+    await saveTranscription(req.body);
+  } catch(e) {
+    next(e);
+    return;
+  }
+
+  res.redirect('/');
+})
 
 app.get('/', async (req, res, next) => {
   try {

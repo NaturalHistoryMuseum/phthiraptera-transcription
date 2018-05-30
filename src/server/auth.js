@@ -21,7 +21,6 @@ const hash = env('PW_HASH', '$2b$10$hSvCHrEyrJBnMkfiZRTk0euWf0zuMqKA8iD7QFEgGwg6
 
 const app = express.Router();
 
-app.post(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.post(async (req, res, next) => {

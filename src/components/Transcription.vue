@@ -1,7 +1,7 @@
 <template>
   <div class="Transcription">
     <TImage class="Transcription__images" :src="record.asset_id" />
-    <Form />
+    <Form :barcode="record.barcode" />
   </div>
 </template>
 
