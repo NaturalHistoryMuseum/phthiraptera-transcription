@@ -50,7 +50,10 @@ const client = new Client({
     );
     
     CREATE TABLE fields (
-      barcode varchar(9) PRIMARY KEY
+      barcode varchar(9) PRIMARY KEY,
+      locality varchar(255) NOT NULL,
+      country varchar(255) NOT NULL,
+      precise_locality varchar(255) NOT NULL
     );
   `)
 
