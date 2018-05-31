@@ -1,18 +1,23 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const Bundler = require('parcel-bundler');
 const auth = require('./auth');
 const render = require('./render');
 const api = require('./api');
 const { nextAsset, saveTranscription } = require('./api/database');
 
 const app = express();
+
+const bundler = new Bundler('src/client/index.js', {
+  watch: true
+});
+
+app.use(bundler.middleware())
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(auth);
 
 app.use('/api', api);
-
-app.use(express.static('dist'));
-
 
 app.post('/', async (req, res, next) => {
   try {

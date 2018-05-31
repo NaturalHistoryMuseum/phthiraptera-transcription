@@ -23,7 +23,7 @@ const app = express.Router();
 
 app.use(cookieParser());
 
-app.post(async (req, res, next) => {
+app.post('/', async (req, res, next) => {
   if (!('password' in req.body)) {
     next();
   }

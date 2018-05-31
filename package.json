@@ -7,8 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "hash": "node hash.js",
-    "parcel": "parcel",
-    "watch": "parcel build  src/components/App.vue && parcel watch src/client/index.js"
+    "parcel": "parcel"
   },
   "author": "Natural History Museum",
   "license": "ISC",
