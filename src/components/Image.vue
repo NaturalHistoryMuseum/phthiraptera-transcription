@@ -3,9 +3,10 @@
     <div>
       <button @click="rotateBy(-1)">&lt;-</button>
       <button @click="rotateBy(1)">-></button>
-      {{ loading ? 'Loading...' : '' }}
+      {{ image && loading ? 'Loading...' : '' }}
     </div>
-    <canvas ref="canvas" class="Image__canvas"></canvas>
+    <canvas v-if="image" ref="canvas" class="Image__canvas"></canvas>
+    <img v-else ref="image" class="Image__canvas" :src="this.src" />
   </div>
 </template>
 
@@ -16,11 +17,20 @@ export default {
       rotate: 0,
       zoom: 1,
       origin: 0,
-      ctx: null,
-      loading: true
+      loading: true,
+      image: null
     }
   },
-  props: ['src'],
+  props: ['assetId'],
+  computed: {
+    src() {
+      return `http://www.nhm.ac.uk/services/media-store/asset/${this.assetId}/contents/preview`
+    },
+    ctx() {
+      const canvas = this.$refs.canvas;
+      return canvas && canvas.getContext('2d');
+    }
+  },
   methods: {
     rotateBy(d) {
       while (d < 0) {
@@ -30,25 +40,22 @@ export default {
     },
     loadImage() {
       this.loading = true;
-      const image = new Image;
+      const image = this.$refs.image || new Image;
       this.image = image;
-      image.src = 'http://www.nhm.ac.uk/services/media-store/asset/' + this.src + '/contents/preview';
+      image.src = this.src;
       image.onload = () => {
         this.loading = false;
-        const canvas = this.$refs.canvas;
-        const ctx = canvas.getContext('2d');
-        this.ctx = ctx;
         this.draw();
       }
     },
     draw() {
       const canvas = this.$refs.canvas;
-      canvas.width = canvas.clientWidth;
-      canvas.height = canvas.clientHeight;
       const ctx = this.ctx;
       const image = this.image;
-      const w = canvas.width;
+      const w = canvas.clientWidth;
       const h = w * image.height / image.width;
+      canvas.height = h;
+      canvas.width = w;
       const n = this.rotate;
       const θ = n * Math.PI / 2;
 
@@ -78,7 +85,7 @@ export default {
     rotate(val) {
       this.draw();
     },
-    src() {
+    assetId() {
       this.loadImage();
     }
   }
@@ -91,6 +98,6 @@ export default {
   flex-direction: column;
 }
 .Image__canvas {
-  flex: 1;
+  max-width: 100%;
 }
 </style>

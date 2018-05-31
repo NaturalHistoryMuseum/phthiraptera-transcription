@@ -1,7 +1,7 @@
 <template>
   <div class="Transcription">
     <div class="Transcription__images">
-      <TImage v-for="record in records" :src="record.asset_id" :key="record.asset_id" />
+      <TImage v-for="record in records" :assetId="record.asset_id" :key="record.asset_id" />
     </div>
     <Form :barcode="records[0].barcode" />
   </div>

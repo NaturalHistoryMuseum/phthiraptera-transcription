@@ -2,7 +2,7 @@
   <div id="app" class="App">
     <nav class="App__nav">
       <img src="nhm.png" height="24">
-      <div>Anoplura Data Cleaning Tool</div>
+      <div>Phthiraptera Transcription</div>
     </nav>
 
     <Transcription class="App__transcription" :records="record" />

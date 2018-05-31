@@ -38,7 +38,7 @@ app.get('/', async (req, res, next) => {
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Anoplura Transcriptions</title>
+  <title>phthiraptera Transcriptions</title>
   <link rel="stylesheet" href="/index.css" />
   <script>
     window.__DATA__ = ${JSON.stringify(data)};

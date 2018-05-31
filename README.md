@@ -1,4 +1,4 @@
-# Anoplura Transcriptions
+# Phthiraptera Transcriptions
 
 Requires nodejs.
 

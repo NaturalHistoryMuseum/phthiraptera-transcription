@@ -26,6 +26,7 @@ app.use(cookieParser());
 app.post('/', async (req, res, next) => {
   if (!('password' in req.body)) {
     next();
+    return;
   }
 
   try {
