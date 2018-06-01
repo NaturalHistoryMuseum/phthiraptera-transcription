@@ -14,7 +14,7 @@ const bundler = new Bundler('src/client/index.js', {
 
 app.use(bundler.middleware())
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(auth);
 
 app.use('/api', api);

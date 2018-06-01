@@ -21,30 +21,69 @@
         <input class="Form__input" name="precise_locality">
       </label>
     </fieldset>
-    <label class="Form__label">
-      Host
-      <input class="Form__input">
-    </label>
-    <label class="Form__label">
-      Collection Date
-      <input class="Form__input">
-    </label>
-    <label class="Form__label">
-      Collector
-      <input class="Form__input">
-    </label>
-    <label class="Form__label">
-      Type Status
-      <input class="Form__input">
-    </label>
-    <label class="Form__label">
-      Registration Number
-      <input class="Form__input">
-    </label>
-    <label class="Form__label">
-      Sex/Stage
-      <input class="Form__input">
-    </label>
+    <fieldset>
+      <legend>Host</legend>
+      <label class="Form__label">
+        Host
+        <input name="host" list="host_list" class="Form__input">
+        <datalist id="host_list">
+          <option v-for="host in hosts" :key="host">{{ host }}</option>
+        </datalist>
+      </label>
+    </fieldset>
+    <fieldset>
+      <legend>Collection Date</legend>
+      <label class="Form__label" for="collection_day">
+        Date (dd-mm-yyy)
+      </label>
+      <div class="Form__input">
+        <input type="number" min="1" max="31" name="collection_day" id="collection_day">
+        <input type="number" min="1" max="12" name="collection_month">
+        <input type="number" name="collection_year">
+      </div>
+      <div class="Form__radioset">
+        <label>
+          <input type="checkbox" name="collection_range" value="1">
+          Date range
+        </label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Collector</legend>
+      <label class="Form__label">
+        Collector name
+        <input name="collector" class="Form__input">
+      </label>
+    </fieldset>
+    <fieldset>
+      <legend>Type Status</legend>
+      <label class="Form__label">
+        Type status
+        <select name="type_status" class="Form__input">
+          <option v-for="status in typeStatuses" :key="status">{{ status }}</option>
+        </select>
+      </label>
+    </fieldset>
+    <fieldset>
+      <legend>Registration Number</legend>
+      <label class="Form__label">
+        BM#
+        <input name="registration_number" class="Form__input">
+      </label>
+    </fieldset>
+    <fieldset>
+      <legend>Sex/Stage</legend>
+      <label class="Form__label">
+        Total count
+        <input name="total_count" type="number" class="Form__input">
+      </label>
+      <div class="Form__radioset">
+        <label v-for="stage in ['adult female', 'adult male', 'nymph']" :key="stage">
+          <input name="stage[]" type="checkbox" :value="stage">
+          {{ stage }}
+        </label>
+      </div>
+    </fieldset>
 
     <button>Submit</button>
 
@@ -52,20 +91,30 @@
 </template>
 
 <script>
-import { countries, localities } from './form-fields.js';
+import { countries, localities, hosts, typeStatuses } from './form-fields.js';
 
 export default {
   props: ['barcode'],
   inject: ['eventBus'],
   data: () => ({
     countries,
-    localities
+    localities,
+    hosts,
+    typeStatuses
   }),
   methods: {
     transcribe(event){
       const payload = {};
       for (const el of event.target.elements) {
-        if(el.name) {
+        if(!el.name || ((el.type === "checkbox" || el.type === "radio") && !el.checked)) {
+          continue;
+        }
+
+        const match = el.name.match(/^(.+)\[\]$/);
+
+        if(match) {
+          payload[match[1]] = (payload[match[1]] || []).concat(el.value);
+        } else {
           payload[el.name] = el.value;
         }
       }
@@ -118,9 +167,16 @@ export default {
 }
 
 .Form__input {
-  display: block;
   margin: 3px 0 10px;
   padding: 5px;
   width: 100%;
+}
+
+[name="collection_day"], [name="collection_month"] {
+  width: 25%;
+}
+
+[name="collection_year"] {
+  width: 45%;
 }
 </style>

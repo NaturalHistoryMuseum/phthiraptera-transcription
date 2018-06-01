@@ -23,12 +23,10 @@ const connect = fn => async (...args) => {
   try {
     client = await pool.connect();
 
-    var rtn = await fn(client, ...args);
+    return await fn(client, ...args);
   } finally {
     await client.release();
   }
-
-  return rtn;
 }
 
 module.exports = {
@@ -51,18 +49,40 @@ module.exports = {
       throw new Error(`Precise locality must not be empty`);
     }
 
+    const stage = data.stage || [];
+
     return query(client)`
       INSERT INTO fields (
         barcode,
         locality,
         country,
-        precise_locality
+        precise_locality,
+        host,
+        collection_date,
+        collection_range,
+        collector,
+        type_status,
+        registration_number,
+        total_count,
+        adult_female,
+        adult_mail,
+        nymph
       )
       VALUES(
         ${data.barcode},
         ${data.locality},
         ${data.country},
-        ${data.precise_locality}
+        ${data.precise_locality},
+        ${data.host},
+        ${new Date(data.collection_year, data.collection_month - 1, data.collection_day)},
+        ${!!data.collection_range},
+        ${data.collector},
+        ${data.type_status},
+        ${data.registration_number},
+        ${data.total_count},
+        ${!!stage.includes('adult female')},
+        ${!!stage.includes('adult male')},
+        ${!!stage.includes('nymph')}
       );`
   }),
   nextAsset: connect(async (client) => {
