@@ -1,9 +1,10 @@
 <template>
   <div class="Image">
     <div>
-      <button @click="rotateBy(-1)">&lt;-</button>
-      <button @click="rotateBy(1)">-></button>
+      <button v-if="!error" @click="rotateBy(-1)">↶</button>
+      <button v-if="!error" @click="rotateBy(1)">↷</button>
       {{ image && loading ? 'Loading...' : '' }}
+      {{ error || '' }}
     </div>
     <canvas v-if="image" ref="canvas" class="Image__canvas"></canvas>
     <img v-else ref="image" class="Image__canvas" :src="this.src" />
@@ -18,7 +19,8 @@ export default {
       zoom: 1,
       origin: 0,
       loading: true,
-      image: null
+      image: null,
+      error: null
     }
   },
   props: ['assetId'],
@@ -40,12 +42,17 @@ export default {
     },
     loadImage() {
       this.loading = true;
+      this.error = null;
       const image = this.$refs.image || new Image;
       this.image = image;
       image.src = this.src;
       image.onload = () => {
         this.loading = false;
         this.draw();
+      }
+      image.onerror = () => {
+        this.loading = false;
+        this.error = 'Could not load the image, please try again later.';
       }
     },
     draw() {

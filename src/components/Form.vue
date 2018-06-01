@@ -5,7 +5,7 @@
       <legend>Locality</legend>
       <div class="Form__radioset">
         <label v-for="l in localities" :key="l">
-          <input type="radio" name="locality" :value="l" v-model="locality">
+          <input type="radio" name="locality" :value="l" :checked="l==='Location'">
           {{ l }}
         </label>
       </div>
