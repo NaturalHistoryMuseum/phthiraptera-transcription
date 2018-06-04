@@ -1,5 +1,6 @@
 const { Client, Pool } = require('pg');
-const { localities, countries } = require('../../components/form-fields');
+const { localities, countries, typeStatuses } = require('../../components/form-fields');
+const validator = require('../validator');
 
 const pool = new Pool({
   user: 'postgres',
@@ -29,25 +30,28 @@ const connect = fn => async (...args) => {
   }
 }
 
+
 module.exports = {
   saveTranscription: connect(async (client, data) => {
     const { rowCount } = await query(client)`SELECT * FROM images WHERE barcode=${data.barcode}`;
+    const date = new Date(data.collection_year, data.collection_month - 1, data.collection_day);
 
-    if (rowCount < 1) {
-      throw new Error(`Unknown asset with barcode ${data.barcode}`);
-    }
+    const validate = validator();
 
-    if(!localities.includes(data.locality)) {
-      throw new Error(`Invalid locality "${data.locality}"`);
-    }
+    validate(rowCount >= 1,`Unknown asset with barcode ${data.barcode}`);
+    validate(localities.includes(data.locality), `Invalid locality "${data.locality}"`);
+    validate(countries.includes(data.country), `Invalid country "${data.country}"`);
+    validate(!!data.precise_locality, `Precise locality must not be empty`);
+    validate(!!data.host, `Host must not be empty`);
+    const validDate = !isNaN(date) && data.collection_year > 0 && data.collection_month > 0 && data.collection_day > 0;
+    validate(validDate, `Invalid date: ${data.collection_year}-${data.collection_month}-${data.collection_day}`);
+    validate(date < Date.now(), `Date must be in the past.`)
+    validate(!!data.collector, `Collector must not be empty`)
+    validate(!!typeStatuses.includes(data.type_status), `Invalid type status "${data.type_status}`)
+    validate(!!data.registration_number, `Registration number must not be empty`)
+    validate(data.total_count > 0, `Total count must be > 0`)
 
-    if(!countries.includes(data.country)) {
-      throw new Error(`Invalid country "${data.country}"`);
-    }
-
-    if(!data.precise_locality) {
-      throw new Error(`Precise locality must not be empty`);
-    }
+    await validate.throw();
 
     const stage = data.stage || [];
 
