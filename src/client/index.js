@@ -9,11 +9,11 @@ const app = new Vue({
   },
   data() {
     return {
-      record: window.__DATA__
+      records: window.__DATA__
     }
   },
   render(h) {
-    return h(App, { props: { record: this.record  }})
+    return h(App, { props: { records: this.records }})
   }
 })
 

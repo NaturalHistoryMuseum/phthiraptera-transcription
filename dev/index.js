@@ -2,17 +2,19 @@ const { spawn } = require('child_process');
 const isPortFree = require('is-port-free');
 const Bundler = require('parcel-bundler');
 
-const src = require.resolve('../src/components/App.vue');
+for (const name of ['App', 'Login']) {
+  const src = require.resolve(`../src/components/${name}.vue`);
 
-const bundler = new Bundler(src, {
-  target: 'node'
-});
+  const bundler = new Bundler(src, {
+    target: 'node'
+  })
 
-bundler.bundle();
+  bundler.bundle();
 
-bundler.on('bundled', bundle => {
-  delete require.cache[bundle.name];
-});
+  bundler.on('bundled', bundle => {
+    delete require.cache[bundle.name];
+  });
+}
 
 isPortFree(5432).catch(() => false).then((free) => {
   if (!free) return;

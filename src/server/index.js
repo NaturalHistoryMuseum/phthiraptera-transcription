@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const Bundler = require('parcel-bundler');
 const toCSV = require('array-to-csv')
 const auth = require('./auth');
-const render = require('./render');
+const { render, html, login }  = require('./render');
 const api = require('./api');
 const { nextAsset, saveTranscription, readData } = require('./api/database');
 
@@ -16,7 +16,17 @@ const bundler = new Bundler('src/client/index.js', {
 app.use(bundler.middleware())
 
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(auth);
+
+app.use(auth(async (req, res) => {
+  res.send(html({
+    title: 'Phthiraptera Transcriptions',
+    head: `
+      <link rel="stylesheet" href="/index.css" />
+      <link rel="stylesheet" href="/Login.css" />
+    `,
+    body: await login()
+  }));
+}));
 
 app.use('/api', api);
 
@@ -34,23 +44,17 @@ app.post('/', async (req, res, next) => {
 app.get('/', async (req, res, next) => {
   try {
     const data = await nextAsset();
-    const html = await render({ data });
-    res.send(`<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>phthiraptera Transcriptions</title>
-  <link rel="stylesheet" href="/index.css" />
-  <script>
-    window.__DATA__ = ${JSON.stringify(data)};
-  </script>
-</head>
-
-<body>
-  ${html}
-  <script src="/index.js"></script>
-</body>
-</html>`);
+    res.send(html({
+      title: 'Phthiraptera Transcriptions',
+      head: `
+        <link rel="stylesheet" href="/index.css" />
+        <script>
+          window.__DATA__ = ${JSON.stringify(data)};
+        </script>`,
+      body: `
+        ${await render({ data })}
+        <script src="/index.js"></script>`
+    }));
   } catch(e) {
     next(e);
   }
