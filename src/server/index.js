@@ -1,10 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const Bundler = require('parcel-bundler');
+const toCSV = require('array-to-csv')
 const auth = require('./auth');
 const render = require('./render');
 const api = require('./api');
-const { nextAsset, saveTranscription } = require('./api/database');
+const { nextAsset, saveTranscription, readData } = require('./api/database');
 
 const app = express();
 
@@ -54,6 +55,18 @@ app.get('/', async (req, res, next) => {
     next(e);
   }
 });
+
+app.get('/csv', async (req, res, next) => {
+  try {
+    const data = await readData();
+    const fields = data.fields.map(f => f.name);
+    const rows = [fields, ...data.rows.map(r => fields.map(f => r[f]))];
+    res.type('text/csv; charset=utf-8; headers=present');
+    res.send(toCSV(rows));
+  } catch(e) {
+    next(e);
+  }
+})
 
 app.use((req, res) => {
     res.status(404).send('File not found');

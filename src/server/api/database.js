@@ -101,6 +101,8 @@ module.exports = {
       //(rows.find(r => r.label === "image 2")).barcode
       rows[0].barcode
     return rows.filter(row => row.barcode === bc);
-  }
-  )
+  }),
+  readData: connect(async (client) => {
+    return query(client)`SELECT * FROM fields`;
+  })
 }
