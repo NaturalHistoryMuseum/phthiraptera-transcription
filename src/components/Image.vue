@@ -6,7 +6,7 @@
       {{ image && loading ? 'Loading...' : '' }}
       {{ error || '' }}
     </div>
-    <canvas v-if="image" ref="canvas" class="Image__canvas"></canvas>
+    <canvas v-if="image" ref="canvas" class="Image__canvas" :width="width" :height="height"></canvas>
     <img v-else ref="image" class="Image__canvas" :src="this.src" />
   </div>
 </template>
@@ -23,7 +23,7 @@ export default {
       error: null
     }
   },
-  props: ['assetId'],
+  props: ['assetId', 'width', 'height'],
   computed: {
     src() {
       return `http://www.nhm.ac.uk/services/media-store/asset/${this.assetId}/contents/preview`
@@ -59,34 +59,46 @@ export default {
       const canvas = this.$refs.canvas;
       const ctx = this.ctx;
       const image = this.image;
-      const w = canvas.clientWidth;
-      const h = w * image.height / image.width;
-      canvas.height = h;
-      canvas.width = w;
-      const n = this.rotate;
-      const θ = n * Math.PI / 2;
+      const imageSize = Math.max(image.width, image.height);
+      const canvasSize = Math.min(canvas.width, canvas.height);
+      const scale = canvasSize / imageSize;
+      const w = scale * image.width;
+      const h = scale * image.height;
+      const rotations = this.rotate;
+      const θ = rotations * Math.PI / 2;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       ctx.save();
       ctx.rotate(θ);
 
-      switch (n) {
+      const xCentre = (canvas.width - w)/2;
+      const yCentre = (canvas.width - h)/2;
+
+      switch (rotations) {
+        case 0:
+          ctx.translate(xCentre, 0);
+          break;
         case 1:
-          ctx.translate(0, -(w + h)/2);
+          ctx.translate(0, -(yCentre + h));
           break;
         case 2:
-          ctx.translate(-w, -h);
+          ctx.translate(-(xCentre +  w), -h);
           break;
         case 3:
-          ctx.translate(-w, (w - h)/2);
+          ctx.translate(-w, yCentre);
           break;
       }
 
-      ctx.drawImage(image, 0, 0, w, h);
+      ctx.drawImage(image, 0, 0,  w, h);
       ctx.restore();
     }
   },
   mounted() {
-    this.loadImage()
+    this.loadImage();
+  },
+  updated() {
+    this.draw();
   },
   watch: {
     rotate(val) {
@@ -105,6 +117,6 @@ export default {
   flex-direction: column;
 }
 .Image__canvas {
-  max-width: 100%;
+  flex: 1;
 }
 </style>

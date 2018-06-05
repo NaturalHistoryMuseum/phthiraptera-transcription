@@ -32,9 +32,9 @@ eventBus.$on('transcribe', async payload => {
     throw new Error('Res was not ok');
   }
 
-  const record = await(await window.fetch('/api', { credentials: 'include' })).json();
+  const records = await(await window.fetch('/api', { credentials: 'include' })).json();
 
-  app.record = record;
+  app.records = records;
 })
 
 app.$mount('#app')

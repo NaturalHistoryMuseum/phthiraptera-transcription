@@ -26,6 +26,7 @@
     "jsonwebtoken": "^8.2.1",
     "parcel-bundler": "^1.8.1",
     "pg": "^7.4.3",
+    "resize-observer-polyfill": "^1.5.0",
     "vue": "^2.5.16",
     "vue-hot-reload-api": "^2.3.0",
     "vue-server-renderer": "^2.5.16"

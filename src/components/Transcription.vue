@@ -1,13 +1,14 @@
 <template>
   <div class="Transcription">
-    <div class="Transcription__images">
-      <TImage v-for="record in records" :assetId="record.asset_id" :key="record.asset_id" />
+    <div class="Transcription__images" ref="images">
+      <TImage v-for="record in records" :assetId="record.asset_id" :key="record.asset_id" v-bind="dimensions" />
     </div>
     <Form :barcode="records[0].barcode" />
   </div>
 </template>
 
 <script>
+import ResizeObserver from 'resize-observer-polyfill';
 import Form from './Form.vue';
 import TImage from './Image.vue';
 
@@ -16,14 +17,58 @@ export default {
     Form,
     TImage
   },
-  props: ['records']
+  data() {
+    return {
+      imageSetWidth: 0,
+      imageSetHeight: 0
+    }
+  },
+  props: ['records'],
+  computed: {
+    dimensions() {
+      const n = this.records.length;
+      const h = this.imageSetHeight;
+      const w = this.imageSetWidth;
+
+      let hyp = Infinity;
+      let width, height;
+
+      // Find the different permutations of grids n*1 => 1*n.
+      for(let x = n; x > 0; x--) {
+        // Find cell width/height for grid of `x` cells wide by `⌈x/n⌉` cells high.
+        const imgWidth_ = Math.floor(w / x);
+        const imgHeight_ = Math.floor(h / Math.ceil(n/x));
+        const hyp_ = Math.hypot(imgWidth_, imgHeight_);
+
+        // Grid cells with smaller hypotenuses are more
+        // space-efficient for square contents.
+        if (hyp_ < hyp) {
+          [hyp, width, height] = [hyp_, imgWidth_, imgHeight_]
+        }
+      }
+
+      return {
+        width, height
+      }
+    }
+  },
+  mounted() {
+    const resizeObserver = new ResizeObserver(() => {
+      this.imageSetWidth = this.$refs.images.clientWidth - 5;
+      this.imageSetHeight = this.$refs.images.clientHeight - 5;
+    });
+    resizeObserver.observe(this.$el);
+    // NB: As of 2018-06-05 the spec doesn't define whether resizeObserver is
+    // garbage collected when $el is removed from DOM. Current Chrome behaviour
+    // is that it does. If this changes, use unobserve/disconnect on unmount.
+  }
 }
 </script>
 
 <style>
 .Transcription {
   padding: 15px;
-
+  height: 100%;
   display: flex;
 }
 
@@ -33,10 +78,8 @@ export default {
 
 .Transcription__images {
   display: flex;
-  flex-direction: column;
-}
-
-.Transcription__images > * {
-  flex: 1;
+  flex-wrap: wrap;
+  max-height: 100%;
+  min-width: 50%;
 }
 </style>
