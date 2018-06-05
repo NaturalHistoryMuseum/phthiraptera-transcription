@@ -3,11 +3,17 @@ const { localities, countries, typeStatuses } = require('../../components/form-f
 const validator = require('../validator');
 const getenv = require('getenv');
 
-const pool = new Pool(getenv('DATABASE_URL', '') || {
-  user: 'postgres',
-  host: 'localhost',
-  database: 'postgres'
-});
+const connectionString = getenv('DATABASE_URL', '');
+
+const pool = new Pool(
+  connectionString ? {
+    connectionString,
+    ssl: true
+  } : {
+    user: 'postgres',
+    host: 'localhost',
+    database: 'postgres'
+  });
 
 pool.on('error', (err, client) => {
   console.error('Unexpected error on idle client', err)
