@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "hash": "node hash.js",
-    "parcel": "parcel"
+    "parcel": "parcel",
+    "heroku-postbuild": "node build/index.js"
   },
   "author": "Natural History Museum",
   "license": "ISC",
@@ -22,10 +23,13 @@
     "cookie-parser": "^1.4.3",
     "express": "^4.16.3",
     "fast-csv": "^2.4.1",
+    "getenv": "^0.7.0",
     "is-port-free": "^1.0.7",
     "jsonwebtoken": "^8.2.1",
     "parcel-bundler": "^1.8.1",
     "pg": "^7.4.3",
+    "pg-connection-string": "^2.0.0",
+    "postgres-migrations": "neonpaul/postgres-migrations",
     "resize-observer-polyfill": "^1.5.0",
     "vue": "^2.5.16",
     "vue-hot-reload-api": "^2.3.0",

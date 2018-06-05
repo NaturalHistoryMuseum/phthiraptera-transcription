@@ -1,5 +1,18 @@
-if (process.env.NODE_ENV !== 'production') {
-  require('./dev')
+const isDevMode = process.env.NODE_ENV !== 'production';
+
+if (!isDevMode) {
+  require('getenv').disableFallbacks();
 }
 
-require('./src/server/index.js');
+const start = async () => {
+  if (isDevMode) {
+    const { buildAssets, runMigrations } = require('./build');
+    buildAssets();
+    await require('./dev/docker')();
+    await runMigrations();
+  }
+
+  require('./src/server/index.js');
+}
+
+start();

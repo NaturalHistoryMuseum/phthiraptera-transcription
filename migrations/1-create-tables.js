@@ -1,6 +1,7 @@
-const { Client } = require('pg');
 const csv = require('fast-csv');
-const fs = require('fs')
+const fs = require('fs');
+const getenv = require('getenv');
+const { migrate } = require('postgres-migrations');
 
 const readCsv = file => new Promise((resolve, reject) => {
   const rows = [];
@@ -18,29 +19,8 @@ const readCsv = file => new Promise((resolve, reject) => {
   .on('end', () => resolve(rows))
 })
 
-const client = new Client({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'postgres'
-});
-
-(async () => {
-  await client.connect()
-
-  const rx = await client.query(`
-    SELECT EXISTS (
-    SELECT 1 
-    FROM   information_schema.tables
-    WHERE  table_name = 'images'
-  );`)
-
-  const { rows: [result] } = rx;
-
-  if (result.exists) {
-    return
-  }
-
-  await client.query(`
+module.exports.generateSql = async () => {
+  let string = `
     CREATE TABLE images (
       barcode varchar(9) NOT NULL,
       irn varchar(7) NOT NULL,
@@ -65,29 +45,37 @@ const client = new Client({
       adult_mail boolean NOT NULL DEFAULT FALSE,
       nymph boolean NOT NULL DEFAULT FALSE
     );
-  `)
+  `
 
   let line;
 
   let i = 0;
 
   for (const line of await readCsv(require.resolve("./images.csv"))) {
-    process.stdout.clearLine();  // clear current text
-    process.stdout.write(`Importing record ${++i}`);
-    process.stdout.cursorTo(0);
+    // process.stdout.clearLine();  // clear current text
+    // process.stdout.write(`Importing record ${++i}`);
+    // process.stdout.cursorTo(0);
+
     if (!line.assetID) {
       console.warn(`Found record with no asset ID (barcode: ${line.Barcode}, IRN: ${line['Multimedia IRN']})`);
       continue;
     }
-    const sql = `INSERT INTO images (barcode, irn, label, asset_id)
-    VALUES('${line.Barcode}', '${line['Multimedia IRN']}', '${line['Image 1/2']}', '${line.assetID || null}')`
 
-    await client.query(sql)
+    const sql = `
+      INSERT INTO images
+        (barcode, irn, label, asset_id)
+      VALUES
+        ('${line.Barcode}',
+         '${line['Multimedia IRN']}',
+         '${line['Image 1/2']}',
+         '${line.assetID || null}'
+        );
+    `
+    
+    string += sql;
   }
 
-  console.log(`Imported ${i} records`)
-})().catch(e => {
-  console.log(e)
-}).then(() => {
-  client.end()
-})
+  // console.log(`Imported ${i} records`)
+
+  return string;
+}

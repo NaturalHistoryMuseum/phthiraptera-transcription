@@ -1,23 +1,12 @@
 const { spawn } = require('child_process');
 const isPortFree = require('is-port-free');
-const Bundler = require('parcel-bundler');
 
-for (const name of ['App', 'Login']) {
-  const src = require.resolve(`../src/components/${name}.vue`);
+const checkPort = () => isPortFree(5432).then(() => true, () => false);
 
-  const bundler = new Bundler(src, {
-    target: 'node'
-  })
-
-  bundler.bundle();
-
-  bundler.on('bundled', bundle => {
-    delete require.cache[bundle.name];
-  });
-}
-
-isPortFree(5432).catch(() => false).then((free) => {
-  if (!free) return;
+const start = async () => {
+  if (!await checkPort()) {
+    return;
+  }
 
   const proc = spawn('docker', ['run','--rm','-P','--publish', '127.0.0.1:5432:5432', '-v', 'data:/var/lib/postgresql/data','postgres'])
   return new Promise((resolve, reject) => {
@@ -45,9 +34,6 @@ isPortFree(5432).catch(() => false).then((free) => {
     })
     proc.on('end', reject);
   });
-}).then(() => {
-  require('./sql-import.js')
-}).catch(e => {
-  console.log(e);
-  process.exit(1);
-})
+};
+
+module.exports = start;

@@ -3,8 +3,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
-
-const DEV_MODE = process.env.NODE_ENV !== 'production';
+const getenv = require('getenv');
 
 const verifyJwt = (token, hash) => {
   try {
@@ -15,18 +14,7 @@ const verifyJwt = (token, hash) => {
   }
 }
 
-const env = (key, fallback) => {
-  if (key in process.env) {
-    return process.env[key];
-  }
-  if (!DEV_MODE || fallback === undefined) {
-    throw new Error(`The ${key} environment variable has not been set.`);
-  }
-
-  return fallback;
-}
-
-const hash = env('PW_HASH', '$2b$10$hSvCHrEyrJBnMkfiZRTk0euWf0zuMqKA8iD7QFEgGwg6kZX8f44ye');
+const hash = getenv('PW_HASH', '$2b$10$hSvCHrEyrJBnMkfiZRTk0euWf0zuMqKA8iD7QFEgGwg6kZX8f44ye');
 
 module.exports = fallback => {
   const app = express.Router();

@@ -1,8 +1,9 @@
 const { Client, Pool } = require('pg');
 const { localities, countries, typeStatuses } = require('../../components/form-fields');
 const validator = require('../validator');
+const getenv = require('getenv');
 
-const pool = new Pool({
+const pool = new Pool(getenv('DATABASE_URL', '') || {
   user: 'postgres',
   host: 'localhost',
   database: 'postgres'
@@ -21,9 +22,9 @@ const query = client => (strings, ...params) => {
 
 // Helper function to connect & disconnect
 const connect = fn => async (...args) => {
-  try {
-    client = await pool.connect();
+  const client = await pool.connect();
 
+  try {
     return await fn(client, ...args);
   } finally {
     await client.release();

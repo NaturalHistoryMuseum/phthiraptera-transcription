@@ -76,4 +76,8 @@ app.use((req, res) => {
     res.status(404).send('File not found');
 });
 
-app.listen(process.env.PORT || 1234);
+const port = process.env.PORT || 1234;
+
+app.listen(port, () => {
+  console.log('Listening on http://localhost:' + port)
+});
