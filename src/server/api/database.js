@@ -77,7 +77,7 @@ module.exports = {
         registration_number,
         total_count,
         adult_female,
-        adult_mail,
+        adult_male,
         nymph
       )
       VALUES(

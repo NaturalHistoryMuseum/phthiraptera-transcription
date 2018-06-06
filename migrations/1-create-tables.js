@@ -42,7 +42,7 @@ module.exports.generateSql = async () => {
       registration_number varchar(255) NOT NULL,
       total_count integer NOT NULL,
       adult_female boolean NOT NULL DEFAULT FALSE,
-      adult_mail boolean NOT NULL DEFAULT FALSE,
+      adult_male boolean NOT NULL DEFAULT FALSE,
       nymph boolean NOT NULL DEFAULT FALSE
     );
   `

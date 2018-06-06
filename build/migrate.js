@@ -21,3 +21,7 @@ const cfg = connectionString ? {
 cfg.port = Number(cfg.port);
 
 module.exports = () => migrate(cfg, './migrations')
+
+if (require.main === module) {
+  module.exports();
+}
