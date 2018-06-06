@@ -1,5 +1,6 @@
 const { Client, Pool } = require('pg');
-const { localities, countries, typeStatuses } = require('../../components/form-fields');
+const { localities, typeStatuses } = require('../../components/form-fields');
+const countries = require('../../data/countries.json');
 const validator = require('../validator');
 const getenv = require('getenv');
 

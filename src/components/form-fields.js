@@ -1,5 +1,7 @@
-const countries = require('./countries.json');
-const hosts = require('./hosts.json');
+const getJson = file => fetch(file).then(res => res.json());
+
+const getCountries = () => getJson('./countries.json');
+const getHosts = () => getJson('./hosts.json');
 
 const localities = ['Location', 'Unreadable', 'Zoo', 'Museum', 'Unlikely host range (bred, lab, introduced)'];
 const typeStatuses = [
@@ -14,5 +16,5 @@ const typeStatuses = [
 ]
 
 module.exports = {
-  countries, localities, hosts, typeStatuses
+  getCountries, localities, getHosts, typeStatuses
 }

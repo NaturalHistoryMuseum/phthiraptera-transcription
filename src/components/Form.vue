@@ -91,17 +91,37 @@
 </template>
 
 <script>
-import { countries, localities, hosts, typeStatuses } from './form-fields.js';
+// TODO: Import these from form-fields.js and figure out why parcel doesn't want to build them
+const getJson = file => fetch(file).then(res => res.json());
+
+const getCountries = () => getJson('./countries.json');
+const getHosts = () => getJson('./hosts.json');
+
+const localities = ['Location', 'Unreadable', 'Zoo', 'Museum', 'Unlikely host range (bred, lab, introduced)'];
+const typeStatuses = [
+  'Allotype',
+  'Holotype',
+  'Lectotype',
+  'Neotype',
+  'Paralectotype',
+  'Paratype',
+  'Syntype',
+  '*Other'
+]
 
 export default {
   props: ['barcode'],
   inject: ['eventBus'],
   data: () => ({
-    countries,
+    countries: [],
     localities,
-    hosts,
+    hosts: [],
     typeStatuses
   }),
+  mounted() {
+    getCountries().then(countries => this.countries = countries);
+    getHosts().then(hosts => this.hosts = hosts);
+  },
   methods: {
     transcribe(event){
       const payload = {};

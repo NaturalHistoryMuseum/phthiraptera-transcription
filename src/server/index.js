@@ -10,11 +10,12 @@ const { nextAsset, saveTranscription, readData } = require('./api/database');
 const app = express();
 
 const bundler = new Bundler('src/client/index.js', {
-  watch: true
+  // TODO: Debug minification/fille issue with parcel
+  minify: false
 });
 
 app.use(bundler.middleware())
-
+app.use(express.static('src/data'))
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(auth(async (req, res) => {

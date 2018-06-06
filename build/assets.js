@@ -7,7 +7,9 @@ const run = () => {
     const src = require.resolve(`../src/components/${name}.vue`);
 
     const bundler = new Bundler(src, {
-      target: 'node'
+      target: 'node',
+      // TODO: Debug minification/file bug with parcel
+      minify: false
     })
 
     bundler.bundle();
