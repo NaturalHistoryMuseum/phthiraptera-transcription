@@ -3,7 +3,7 @@
     <div class="Transcription__images" ref="images">
       <TImage v-for="record in records" :assetId="record.asset_id" :key="record.asset_id" v-bind="dimensions" />
     </div>
-    <Form :barcode="records[0].barcode" />
+    <Form :barcode="records[0].barcode" :error="error"/>
   </div>
 </template>
 
@@ -23,7 +23,7 @@ export default {
       imageSetHeight: 0
     }
   },
-  props: ['records'],
+  props: ['records', 'error'],
   computed: {
     dimensions() {
       const n = this.records.length;

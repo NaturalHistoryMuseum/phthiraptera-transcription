@@ -9,11 +9,20 @@ const app = new Vue({
   },
   data() {
     return {
-      records: window.__DATA__
+      records: window.__DATA__,
+      error: null
     }
   },
   render(h) {
-    return h(App, { props: { records: this.records }})
+    return h(
+      App,
+      {
+        props: {
+          records: this.records,
+          error: this.error
+        }
+      }
+    )
   }
 })
 
@@ -29,12 +38,14 @@ eventBus.$on('transcribe', async payload => {
   })
 
   if (!res.ok) {
-    throw new Error('Res was not ok');
+    app.error = await res.json();
+    return;
   }
 
   const records = await(await window.fetch('/api', { credentials: 'include' })).json();
 
   app.records = records;
+  app.error = null;
 })
 
 app.$mount('#app')

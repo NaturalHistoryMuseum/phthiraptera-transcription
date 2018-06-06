@@ -87,6 +87,12 @@
 
     <button>Submit</button>
 
+    <div class="Form__error" v-if="error">
+      There were some errors in the form:
+      <ul>
+        <li v-for="e in error" :key="e">{{ e }}</li>
+      </ul>
+    </div>
   </form>
 </template>
 
@@ -110,7 +116,7 @@ const typeStatuses = [
 ]
 
 export default {
-  props: ['barcode'],
+  props: ['barcode', 'error'],
   inject: ['eventBus'],
   data: () => ({
     countries: [],
@@ -121,6 +127,11 @@ export default {
   mounted() {
     getCountries().then(countries => this.countries = countries);
     getHosts().then(hosts => this.hosts = hosts);
+  },
+  watch: {
+    barcode() {
+      this.$refs.form.reset();
+    }
   },
   methods: {
     transcribe(event){
@@ -140,7 +151,6 @@ export default {
       }
       this.eventBus.$emit('transcribe', payload)
       event.preventDefault();
-      event.target.reset();
     }
   }
 }
@@ -190,6 +200,14 @@ export default {
   margin: 3px 0 10px;
   padding: 5px;
   width: 100%;
+}
+
+.Form__error {
+  background: #FFCCCC;
+  border: 1px solid red;
+  color: #633000;
+  margin: 0.5em;
+  padding: 0.5em;
 }
 
 [name="collection_day"], [name="collection_month"] {

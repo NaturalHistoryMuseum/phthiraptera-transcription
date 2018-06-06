@@ -1,6 +1,6 @@
 <template>
   <AppWrapper>
-    <Transcription class="App__transcription" :records="records" />
+    <Transcription class="App__transcription" :records="records" :error="error" />
   </AppWrapper>
 </template>
 
@@ -14,6 +14,6 @@ export default {
     Transcription
   },
   name: 'app',
-  props: ['records']
+  props: ['records', 'error']
 }
 </script>

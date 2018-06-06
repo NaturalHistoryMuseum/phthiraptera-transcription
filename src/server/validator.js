@@ -43,3 +43,4 @@ const validator = () => {
 }
 
 module.exports = validator;
+module.exports.ValidationError = ValidationError;
