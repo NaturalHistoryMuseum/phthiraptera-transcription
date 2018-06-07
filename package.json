@@ -1,5 +1,5 @@
 {
-  "name": "anoplura-transcriptions",
+  "name": "phthiraptera-transcription",
   "version": "1.0.0",
   "description": "Transcribe phthiraptera data",
   "main": "index.js",
@@ -11,7 +11,7 @@
     "heroku-postbuild": "node build/index.js"
   },
   "author": "Natural History Museum",
-  "license": "ISC",
+  "license": "GPL3",
   "private": true,
   "engines": {
     "node": "10.0.0"

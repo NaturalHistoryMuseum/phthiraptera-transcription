@@ -1,8 +1,14 @@
 # Phthiraptera Transcriptions
 
-Requires nodejs.
+Requires nodejs and, for development, docker.
 
 Install with `npm install`.
 
-Open two terminals; one to build the front end using `npm run watch`,
-and one to start the server with `npm start`.
+In production, build with `npm run heroku-postinstall`.
+
+Start with `npm start` (in dev this runs the build too and sets up the).
+
+To change the password:
+
+ - Run `npm run hash [new password]`
+ - Set the output as the `PW_HASH` env var.
