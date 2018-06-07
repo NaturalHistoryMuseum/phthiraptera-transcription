@@ -6,7 +6,7 @@ Install with `npm install`.
 
 In production, build with `npm run heroku-postinstall`.
 
-Start with `npm start` (in dev this runs the build too and sets up the).
+Start with `npm start` (in dev this runs the build too and sets up the database).
 
 To change the password:
 
