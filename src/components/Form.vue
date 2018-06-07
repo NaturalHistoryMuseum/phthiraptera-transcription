@@ -12,7 +12,7 @@
       <label class="Form__label">
         Country
         <select name="country" class="Form__input">
-          <option selected disabled>...</option>
+          <option selected></option>
           <option v-for="country in countries" :key="country">{{ country }}</option>
         </select>
       </label>
@@ -30,6 +30,12 @@
           <option v-for="host in hosts" :key="host">{{ host }}</option>
         </datalist>
       </label>
+      <div class="Form__radioset">
+        <label v-for="hostType in hostTypes" :key="hostType">
+          <input type="radio" name="host_type" :value="hostType" :checked="hostType==='No host'">
+          {{ hostType }}
+        </label>
+      </div>
     </fieldset>
     <fieldset>
       <legend>Collection Date</legend>
@@ -105,6 +111,7 @@ const getHosts = () => getJson('./hosts.json');
 
 const localities = ['Location', 'Unreadable', 'Zoo', 'Museum', 'Unlikely host range (bred, lab, introduced)'];
 const typeStatuses = [
+  'non-type',
   'Allotype',
   'Holotype',
   'Lectotype',
@@ -115,6 +122,13 @@ const typeStatuses = [
   '*Other'
 ]
 
+const hostTypes = [
+  'No host',
+  'Skin',
+  'Straggler / questionable host',
+  'Other (nest, clothing etc)'
+]
+
 export default {
   props: ['barcode', 'error'],
   inject: ['eventBus'],
@@ -122,7 +136,8 @@ export default {
     countries: [],
     localities,
     hosts: [],
-    typeStatuses
+    typeStatuses,
+    hostTypes
   }),
   mounted() {
     getCountries().then(countries => this.countries = countries);

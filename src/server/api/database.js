@@ -1,5 +1,5 @@
 const { Client, Pool } = require('pg');
-const { localities, typeStatuses } = require('../../components/form-fields');
+const { localities, typeStatuses, hostTypes } = require('../../components/form-fields');
 const countries = require('../../data/countries.json');
 const validator = require('../validator');
 const getenv = require('getenv');
@@ -48,9 +48,9 @@ module.exports = {
 
     validate(rowCount >= 1,`Unknown asset with barcode ${data.barcode}`);
     validate(localities.includes(data.locality), `Invalid locality "${data.locality}"`);
-    validate(countries.includes(data.country), `Invalid country "${data.country}"`);
-    validate(!!data.precise_locality, `Precise locality must not be empty`);
+    validate(!data.country || countries.includes(data.country), `Invalid country "${data.country}"`);
     validate(!!data.host, `Host must not be empty`);
+    validate(hostTypes.includes(data.host_type), `Invalid host type "${data.host_type}"`);
     const validDate = !isNaN(date) && data.collection_year > 0 && data.collection_month > 0 && data.collection_day > 0;
     validate(validDate, `Invalid date: ${data.collection_year}-${data.collection_month}-${data.collection_day}`);
     validate(date < Date.now(), `Date must be in the past.`)
@@ -70,6 +70,7 @@ module.exports = {
         country,
         precise_locality,
         host,
+        host_type,
         collection_date,
         collection_range,
         collector,
@@ -86,6 +87,7 @@ module.exports = {
         ${data.country},
         ${data.precise_locality},
         ${data.host},
+        ${data.host_type},
         ${new Date(data.collection_year, data.collection_month - 1, data.collection_day)},
         ${!!data.collection_range},
         ${data.collector},
