@@ -1,11 +1,12 @@
 <template>
   <form ref="form" class="Form" method="POST" @submit="transcribe">
     <input type="hidden" name="barcode" :value="barcode">
+    <label>User email <input type="email" name="user_email" v-model="userEmail"></label>
     <fieldset>
       <legend>Locality</legend>
       <div class="Form__radioset">
         <label v-for="l in localities" :key="l">
-          <input type="radio" name="locality" :value="l" :checked="l==='Location'">
+          <input type="radio" name="locality" :value="l" :checked="l==='Location'" v-once>
           {{ l }}
         </label>
       </div>
@@ -32,7 +33,7 @@
       </label>
       <div class="Form__radioset">
         <label v-for="hostType in hostTypes" :key="hostType">
-          <input type="radio" name="host_type" :value="hostType" :checked="hostType==='No host'">
+          <input type="radio" name="host_type" :value="hostType" :checked="hostType==='No host'" v-once>
           {{ hostType }}
         </label>
       </div>
@@ -137,7 +138,8 @@ export default {
     localities,
     hosts: [],
     typeStatuses,
-    hostTypes
+    hostTypes,
+    userEmail: ''
   }),
   mounted() {
     getCountries().then(countries => this.countries = countries);

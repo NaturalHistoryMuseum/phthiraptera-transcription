@@ -49,7 +49,8 @@ module.exports = {
     validate(rowCount >= 1,`Unknown asset with barcode ${data.barcode}`);
     validate(localities.includes(data.locality), `Invalid locality "${data.locality}"`);
     validate(!data.country || countries.includes(data.country), `Invalid country "${data.country}"`);
-    validate(!!data.host, `Host must not be empty`);
+    validate(!!data.host || (data.host_type === 'No host'), `Host must not be empty if host type is selected`);
+    validate(!data.host || (data.host_type !== 'No host'), `Select host type`);
     validate(hostTypes.includes(data.host_type), `Invalid host type "${data.host_type}"`);
     const validDate = !isNaN(date) && data.collection_year > 0 && data.collection_month > 0 && data.collection_day > 0;
     validate(validDate, `Invalid date: ${data.collection_year}-${data.collection_month}-${data.collection_day}`);
@@ -58,6 +59,7 @@ module.exports = {
     validate(!!typeStatuses.includes(data.type_status), `Invalid type status "${data.type_status}`)
     validate(!!data.registration_number, `Registration number must not be empty`)
     validate(data.total_count > 0, `Total count must be > 0`)
+    validate(!!data.user_email, 'User email must not be empty.')
 
     await validate.throw();
 
@@ -79,7 +81,8 @@ module.exports = {
         total_count,
         adult_female,
         adult_male,
-        nymph
+        nymph,
+        user_email
       )
       VALUES(
         ${data.barcode},
@@ -96,7 +99,8 @@ module.exports = {
         ${data.total_count},
         ${!!stage.includes('adult female')},
         ${!!stage.includes('adult male')},
-        ${!!stage.includes('nymph')}
+        ${!!stage.includes('nymph')},
+        ${data.user_email}
       );`
   }),
   nextAsset: connect(async (client) => {
