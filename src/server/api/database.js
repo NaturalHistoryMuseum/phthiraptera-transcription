@@ -1,8 +1,11 @@
-const { Client, Pool } = require('pg');
+const { Client, Pool, types } = require('pg');
 const { localities, typeStatuses, hostTypes } = require('../../components/form-fields');
 const countries = require('../../data/countries.json');
 const validator = require('../validator');
 const getenv = require('getenv');
+
+// Output the DATE type as just a tex string
+types.setTypeParser( 1082, 'text', v => v);
 
 const connectionString = getenv('DATABASE_URL', '');
 
@@ -55,8 +58,10 @@ module.exports = {
     const validDate = !isNaN(date) && data.collection_year > 0 && data.collection_month > 0 && data.collection_day > 0;
     validate(validDate, `Invalid date: ${data.collection_year}-${data.collection_month}-${data.collection_day}`);
     validate(date < Date.now(), `Date must be in the past.`)
-    validate(!!data.collector, `Collector must not be empty`)
-    validate(!!typeStatuses.includes(data.type_status), `Invalid type status "${data.type_status}`)
+    validate(data.collectors.filter(Boolean).length > 0, `Collector must not be empty`)
+    for(const typeStatus of (data.type_statuses || [])) {
+      validate(!!typeStatuses.includes(typeStatus), `Invalid type status "${typeStatus}`)
+    }
     validate(!!data.registration_number, `Registration number must not be empty`)
     validate(data.total_count > 0, `Total count must be > 0`)
     validate(!!data.user_email, 'User email must not be empty.')
@@ -75,14 +80,15 @@ module.exports = {
         host_type,
         collection_date,
         collection_range,
-        collector,
-        type_status,
+        collectors,
+        type_statuses,
         registration_number,
         total_count,
         adult_female,
         adult_male,
         nymph,
-        user_email
+        user_email,
+        requires_verification
       )
       VALUES(
         ${data.barcode},
@@ -93,14 +99,15 @@ module.exports = {
         ${data.host_type},
         ${new Date(data.collection_year, data.collection_month - 1, data.collection_day)},
         ${!!data.collection_range},
-        ${data.collector},
-        ${data.type_status},
+        ${JSON.stringify((data.collectors || []).filter(Boolean))},
+        ${JSON.stringify((data.type_statuses || []).filter(Boolean))},
         ${data.registration_number},
         ${data.total_count},
         ${!!stage.includes('adult female')},
         ${!!stage.includes('adult male')},
         ${!!stage.includes('nymph')},
-        ${data.user_email}
+        ${data.user_email},
+        ${!!data.requires_verification}
       );`
   }),
   nextAsset: connect(async (client) => {

@@ -1,11 +1,10 @@
 <template>
   <form ref="form" class="Form" method="POST" @submit="transcribe">
     <input type="hidden" name="barcode" :value="barcode">
-    <label>User email <input type="email" name="user_email" v-model="userEmail"></label>
     <fieldset>
       <legend>Locality</legend>
       <div class="Form__radioset">
-        <label v-for="l in localities" :key="l">
+        <label v-for="l in localities" :key="l" class="Form__checkbutton">
           <input type="radio" name="locality" :value="l" :checked="l==='Location'" v-once>
           {{ l }}
         </label>
@@ -32,7 +31,7 @@
         </datalist>
       </label>
       <div class="Form__radioset">
-        <label v-for="hostType in hostTypes" :key="hostType">
+        <label v-for="hostType in hostTypes" :key="hostType" class="Form__checkbutton">
           <input type="radio" name="host_type" :value="hostType" :checked="hostType==='No host'" v-once>
           {{ hostType }}
         </label>
@@ -49,7 +48,7 @@
         <input type="number" name="collection_year">
       </div>
       <div class="Form__radioset">
-        <label>
+        <label class="Form__checkbutton">
           <input type="checkbox" name="collection_range" value="1">
           Date range
         </label>
@@ -59,14 +58,16 @@
       <legend>Collector</legend>
       <label class="Form__label">
         Collector name
-        <input name="collector" class="Form__input">
+        <input name="collectors[]" class="Form__input" v-for="n in collectorCount" :key="n">
+        <button @click="collectorCount++">+</button>
       </label>
     </fieldset>
     <fieldset>
       <legend>Type Status</legend>
       <label class="Form__label">
         Type status
-        <select name="type_status" class="Form__input">
+        <sub>Ctrl-click to select multiple</sub>
+        <select name="type_statuses[]" class="Form__input" multiple>
           <option v-for="status in typeStatuses" :key="status">{{ status }}</option>
         </select>
       </label>
@@ -85,11 +86,22 @@
         <input name="total_count" type="number" class="Form__input">
       </label>
       <div class="Form__radioset">
-        <label v-for="stage in ['adult female', 'adult male', 'nymph']" :key="stage">
+        <label v-for="stage in ['adult female', 'adult male', 'nymph']" :key="stage" class="Form__checkbutton">
           <input name="stage[]" type="checkbox" :value="stage">
           {{ stage }}
         </label>
       </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Meta</legend>
+      <label class="Form__checkbutton">
+        <input type="checkbox" name="requires_verification">
+        Requires Verification
+      </label>
+      <label class="Form__label">User email
+        <input type="email" name="user_email" v-model="userEmail" class="Form__input">
+      </label>
     </fieldset>
 
     <button>Submit</button>
@@ -134,6 +146,7 @@ export default {
   props: ['barcode', 'error'],
   inject: ['eventBus'],
   data: () => ({
+    collectorCount: 1,
     countries: [],
     localities,
     hosts: [],
@@ -148,6 +161,7 @@ export default {
   watch: {
     barcode() {
       this.$refs.form.reset();
+      this.collectorCount = 1;
     }
   },
   methods: {
@@ -158,12 +172,14 @@ export default {
           continue;
         }
 
-        const match = el.name.match(/^(.+)\[\]$/);
+        for (const value of [...(el.selectedOptions || [el])].map(o => o.value)) {
+          const match = el.name.match(/^(.+)\[\]$/);
 
-        if(match) {
-          payload[match[1]] = (payload[match[1]] || []).concat(el.value);
-        } else {
-          payload[el.name] = el.value;
+          if(match) {
+            payload[match[1]] = (payload[match[1]] || []).concat(value);
+          } else {
+            payload[el.name] = value;
+          }
         }
       }
       this.eventBus.$emit('transcribe', payload)
@@ -195,20 +211,20 @@ export default {
   margin-bottom: 0.5em;
 }
 
-.Form__radioset > * {
+.Form__checkbutton {
   border: 1px solid #CCC;
   border-radius: 1em;
   padding: 0.25em;
   margin: 0.25em;
-  display: flex;
+  display: inline-flex;
 }
 
-.Form__radioset > *:hover {
+.Form__checkbutton:hover {
   box-shadow: #333 1px 1px;
   transform: translate(0, -1px);
 }
 
-.Form__radioset > *:active {
+.Form__checkbutton:active {
   box-shadow: #333 1px 1px inset;
   transform: translate(0, 1px);
 }

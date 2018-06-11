@@ -61,13 +61,66 @@ app.get('/', async (req, res, next) => {
   }
 });
 
+const JSONB_TYPE = 3802;
+const pad = (a, n, string = '') =>
+  Array.from(function*() {
+    let i = 0;
+    while(i < n) {
+      yield i < a.length ? a[i] : string;
+      i++;
+    }
+  }())
+const flatMap = fn => a => a.reduce((acc, val) => acc.concat(fn(val)), []);
+
 app.get('/csv', async (req, res, next) => {
   try {
     const data = await readData();
-    const fields = data.fields.map(f => f.name);
-    const rows = [fields, ...data.rows.map(r => fields.map(f => r[f]))];
+  
+    // List of field names
+    const fieldNames = [],
+          arrayFields = []
+
+    for (const field of data.fields) {
+      fieldNames.push(field.name);
+
+      if (field.dataTypeID === JSONB_TYPE) {
+        arrayFields.push(field.name)
+      }
+    }
+
+    const colSizes = data.rows.reduce((colSizes, row) => {
+      for (const i of arrayFields) {
+        colSizes[i] = Math.max(colSizes[i] || 0, row[i].length)
+      }
+      return colSizes;
+    }, {});
+
+    const rows = data.rows.map(row => {
+      const newRow = [];
+
+      for(const field of fieldNames) {
+        if (field in colSizes) {
+          const pad = Math.max(colSizes[field] - row[field].length, 0);
+          newRow.push(...row[field], ...Array(pad))
+        } else {
+          newRow.push(row[field])
+        }
+      }
+
+      return newRow;
+    });
+
+    const cols = fieldNames.reduce(
+      (cols, fieldName) => cols.concat(
+        fieldName in colSizes ?
+          Array(colSizes[fieldName]).fill(fieldName).map((el, ix) => `${el}[${ix}]`)
+          : fieldName
+      ),
+      []
+    )
+
     res.type('text/csv; charset=utf-8; headers=present');
-    res.send(toCSV(rows));
+    res.send(toCSV([cols, ...rows]));
   } catch(e) {
     next(e);
   }

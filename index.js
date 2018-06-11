@@ -15,4 +15,9 @@ const start = async () => {
   require('./src/server/index.js');
 }
 
-start();
+start().catch(
+  (e) => {
+    console.error(e);
+    process.exit(1);
+  }
+);
