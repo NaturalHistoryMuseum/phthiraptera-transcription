@@ -45,7 +45,7 @@ const connect = fn => async (...args) => {
 module.exports = {
   saveTranscription: connect(async (client, data) => {
     const { rowCount } = await query(client)`SELECT * FROM images WHERE barcode=${data.barcode}`;
-    const date = new Date(data.collection_year, data.collection_month - 1, data.collection_day);
+    const date = (data.collection_year || data.collection_month || data.collection_day) ? new Date(data.collection_year, data.collection_month - 1, data.collection_day) : null;
 
     const validate = validator();
 
@@ -55,15 +55,13 @@ module.exports = {
     validate(!!data.host || (data.host_type === 'No host'), `Host must not be empty if host type is selected`);
     validate(!data.host || (data.host_type !== 'No host'), `Select host type`);
     validate(hostTypes.includes(data.host_type), `Invalid host type "${data.host_type}"`);
-    const validDate = !isNaN(date) && data.collection_year > 0 && data.collection_month > 0 && data.collection_day > 0;
+    const validDate = date === null || (!isNaN(date) && data.collection_year > 0 && data.collection_month > 0 && data.collection_day > 0);
     validate(validDate, `Invalid date: ${data.collection_year}-${data.collection_month}-${data.collection_day}`);
     validate(date < Date.now(), `Date must be in the past.`)
-    validate(data.collectors.filter(Boolean).length > 0, `Collector must not be empty`)
     for(const typeStatus of (data.type_statuses || [])) {
       validate(!!typeStatuses.includes(typeStatus), `Invalid type status "${typeStatus}`)
     }
-    validate(!!data.registration_number, `Registration number must not be empty`)
-    validate(data.total_count > 0, `Total count must be > 0`)
+    validate(!data.total_count ||  data.total_count > 0, `Total count must be > 0 or empty`)
     validate(!!data.user_email, 'User email must not be empty.')
 
     await validate.throw();
@@ -97,12 +95,12 @@ module.exports = {
         ${data.precise_locality},
         ${data.host},
         ${data.host_type},
-        ${new Date(data.collection_year, data.collection_month - 1, data.collection_day)},
+        ${date},
         ${!!data.collection_range},
         ${JSON.stringify((data.collectors || []).filter(Boolean))},
         ${JSON.stringify((data.type_statuses || []).filter(Boolean))},
         ${data.registration_number},
-        ${data.total_count},
+        ${data.total_count || null},
         ${!!stage.includes('adult female')},
         ${!!stage.includes('adult male')},
         ${!!stage.includes('nymph')},

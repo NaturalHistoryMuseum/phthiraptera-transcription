@@ -59,7 +59,7 @@
       <label class="Form__label">
         Collector name
         <input name="collectors[]" class="Form__input" v-for="n in collectorCount" :key="n">
-        <button @click="collectorCount++">+</button>
+        <button @click="collectorCount++" type="button">+</button>
       </label>
     </fieldset>
     <fieldset>
