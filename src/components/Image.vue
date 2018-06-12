@@ -20,10 +20,11 @@ export default {
       origin: 0,
       loading: true,
       image: null,
-      error: null
+      error: null,
+      height: 0
     }
   },
-  props: ['assetId', 'width', 'height'],
+  props: ['assetId', 'width'],
   computed: {
     src() {
       return `http://www.nhm.ac.uk/services/media-store/asset/${this.assetId}/contents/preview`
@@ -60,12 +61,14 @@ export default {
       const ctx = this.ctx;
       const image = this.image;
       const imageSize = Math.max(image.width, image.height);
-      const canvasSize = Math.min(canvas.width, canvas.height);
+      const canvasSize = canvas.width;
       const scale = canvasSize / imageSize;
       const w = scale * image.width;
       const h = scale * image.height;
       const rotations = this.rotate;
       const θ = rotations * Math.PI / 2;
+
+      this.height = rotations % 2 ? w : h;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -115,8 +118,7 @@ export default {
 .Image {
   display: flex;
   flex-direction: column;
-}
-.Image__canvas {
-  flex: 1;
+  flex-wrap: wrap;
+  align-content: flex-start;
 }
 </style>

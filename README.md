@@ -12,3 +12,5 @@ To change the password:
 
  - Run `npm run hash [new password]`
  - Set the output as the `PW_HASH` env var.
+
+For heroku, run `heroku config:set PW_HASH="$(npm run -s hash [new password])"`

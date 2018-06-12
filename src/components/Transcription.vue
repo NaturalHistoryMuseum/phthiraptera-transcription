@@ -1,7 +1,9 @@
 <template>
   <div class="Transcription">
-    <div class="Transcription__images" ref="images">
-      <TImage v-for="record in records" :assetId="record.asset_id" :key="record.asset_id" v-bind="dimensions" />
+    <div ref="images">
+      <div class="Transcription__images" >
+        <TImage v-for="record in records" :assetId="record.asset_id" :key="record.asset_id" :width="width" />
+      </div>
     </div>
     <Form :barcode="records[0].barcode" :error="error"/>
   </div>
@@ -25,7 +27,7 @@ export default {
   },
   props: ['records', 'error'],
   computed: {
-    dimensions() {
+    width() {
       const n = this.records.length;
       const h = this.imageSetHeight;
       const w = this.imageSetWidth;
@@ -47,9 +49,7 @@ export default {
         }
       }
 
-      return {
-        width, height
-      }
+      return width;
     }
   },
   mounted() {
@@ -79,7 +79,15 @@ export default {
 .Transcription__images {
   display: flex;
   flex-wrap: wrap;
-  max-height: 100%;
-  min-width: 50%;
+}
+
+@media(orientation: portrait) {
+  .Transcription {
+    flex-direction: column;
+  }
+
+  .Transcription > * {
+    flex: 0;
+  }
 }
 </style>
