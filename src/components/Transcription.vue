@@ -1,6 +1,6 @@
 <template>
   <div class="Transcription">
-    <div ref="images">
+    <div ref="images" class="Transcription__wrapper">
       <div class="Transcription__images" >
         <TImage v-for="record in records" :assetId="record.asset_id" :key="record.asset_id" :width="width" />
       </div>
@@ -67,8 +67,7 @@ export default {
 
 <style>
 .Transcription {
-  padding: 15px;
-  height: 100%;
+  min-height: 0;
   display: flex;
 }
 
@@ -81,13 +80,17 @@ export default {
   flex-wrap: wrap;
 }
 
+.Transcription__wrapper {
+  overflow: auto;
+}
+
 @media(orientation: portrait) {
   .Transcription {
     flex-direction: column;
   }
 
-  .Transcription > * {
-    flex: 0;
+  .Transcription__wrapper {
+    border-bottom: 1px solid black;
   }
 }
 </style>

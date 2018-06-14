@@ -1,6 +1,6 @@
 <template>
   <div class="Image">
-    <div>
+    <div class="Image__controls">
       <button v-if="!error" @click="rotateBy(-1)">↶</button>
       <button v-if="!error" @click="rotateBy(1)">↷</button>
       {{ image && loading ? 'Loading...' : '' }}
@@ -120,5 +120,10 @@ export default {
   flex-direction: column;
   flex-wrap: wrap;
   align-content: flex-start;
+}
+
+.Image__controls {
+  position: sticky;
+  top: 0;
 }
 </style>

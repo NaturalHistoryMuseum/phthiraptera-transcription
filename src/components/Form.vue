@@ -1,116 +1,120 @@
 <template>
   <form ref="form" class="Form" method="POST" @submit="transcribe">
-    <input type="hidden" name="barcode" :value="barcode">
-    <fieldset>
-      <legend>Locality</legend>
-      <div class="Form__radioset">
-        <label v-for="l in localities" :key="l" class="Form__checkbutton">
-          <input type="radio" name="locality" :value="l" :checked="l==='Location'" v-once>
-          {{ l }}
+    <div class="Form__wrapper">
+      <input type="hidden" name="barcode" :value="barcode">
+      <fieldset class="Form__fieldset">
+        <legend>Locality</legend>
+        <div class="Form__radioset">
+          <label v-for="l in localities" :key="l" class="Form__checkbutton">
+            <input type="radio" name="locality" :value="l" :checked="l==='Location'" v-once>
+            {{ l }}
+          </label>
+        </div>
+        <label class="Form__label">
+          Country
+          <select name="country" class="Form__input">
+            <option selected></option>
+            <option v-for="country in countries" :key="country">{{ country }}</option>
+          </select>
         </label>
-      </div>
-      <label class="Form__label">
-        Country
-        <select name="country" class="Form__input">
-          <option selected></option>
-          <option v-for="country in countries" :key="country">{{ country }}</option>
-        </select>
-      </label>
-      <label class="Form__label">
-        Precise locality
-        <input class="Form__input" name="precise_locality">
-      </label>
-    </fieldset>
-    <fieldset>
-      <legend>Host</legend>
-      <label class="Form__label">
-        Host
-        <input name="host" list="host_list" class="Form__input">
-        <datalist id="host_list">
-          <option v-for="host in hosts" :key="host">{{ host }}</option>
-        </datalist>
-      </label>
-      <div class="Form__radioset">
-        <label v-for="hostType in hostTypes" :key="hostType" class="Form__checkbutton">
-          <input type="radio" name="host_type" :value="hostType" :checked="hostType==='No host'" v-once>
-          {{ hostType }}
+        <label class="Form__label">
+          Precise locality
+          <input class="Form__input" name="precise_locality">
         </label>
-      </div>
-    </fieldset>
-    <fieldset>
-      <legend>Collection Date</legend>
-      <label class="Form__label" for="collection_day">
-        Date (dd-mm-yyy)
-      </label>
-      <div class="Form__input">
-        <input type="number" min="1" max="31" name="collection_day" id="collection_day">
-        <input type="number" min="1" max="12" name="collection_month">
-        <input type="number" name="collection_year">
-      </div>
-      <div class="Form__radioset">
+      </fieldset>
+      <fieldset class="Form__fieldset">
+        <legend>Host</legend>
+        <label class="Form__label">
+          Host
+          <input name="host" list="host_list" class="Form__input">
+          <datalist id="host_list">
+            <option v-for="host in hosts" :key="host">{{ host }}</option>
+          </datalist>
+        </label>
+        <div class="Form__radioset">
+          <label v-for="hostType in hostTypes" :key="hostType" class="Form__checkbutton">
+            <input type="radio" name="host_type" :value="hostType" :checked="hostType==='No host'" v-once>
+            {{ hostType }}
+          </label>
+        </div>
+      </fieldset>
+      <fieldset class="Form__fieldset">
+        <legend>Collection Date</legend>
+        <label class="Form__label" for="collection_day">
+          Date (dd-mm-yyy)
+        </label>
+        <div class="Form__input">
+          <input type="number" min="1" max="31" name="collection_day" id="collection_day">
+          <input type="number" min="1" max="12" name="collection_month">
+          <input type="number" name="collection_year">
+        </div>
+        <div class="Form__radioset">
+          <label class="Form__checkbutton">
+            <input type="checkbox" name="collection_range" value="1">
+            Date range
+          </label>
+        </div>
+      </fieldset>
+      <fieldset class="Form__fieldset">
+        <legend>Collector</legend>
+        <label class="Form__label">
+          Collector name
+          <input name="collectors[]" class="Form__input" v-for="n in collectorCount" :key="n">
+          <button @click="collectorCount++" type="button">+</button>
+        </label>
+      </fieldset>
+      <fieldset class="Form__fieldset">
+        <legend>Type Status</legend>
+        <label class="Form__label">
+          Type status
+          <sub>Ctrl-click to select multiple</sub>
+          <select name="type_statuses[]" class="Form__input" multiple>
+            <option v-for="status in typeStatuses" :key="status">{{ status }}</option>
+          </select>
+        </label>
+      </fieldset>
+      <fieldset class="Form__fieldset">
+        <legend>Registration Number</legend>
+        <label class="Form__label">
+          BM#
+          <input name="registration_number" class="Form__input">
+        </label>
+      </fieldset>
+      <fieldset class="Form__fieldset">
+        <legend>Sex/Stage</legend>
+        <label class="Form__label">
+          Total count
+          <input name="total_count" type="number" class="Form__input">
+        </label>
+        <div class="Form__radioset">
+          <label v-for="stage in ['adult female', 'adult male', 'nymph']" :key="stage" class="Form__checkbutton">
+            <input name="stage[]" type="checkbox" :value="stage">
+            {{ stage }}
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="Form__fieldset">
+        <legend>Meta</legend>
         <label class="Form__checkbutton">
-          <input type="checkbox" name="collection_range" value="1">
-          Date range
+          <input type="checkbox" name="requires_verification">
+          Requires Verification
         </label>
-      </div>
-    </fieldset>
-    <fieldset>
-      <legend>Collector</legend>
-      <label class="Form__label">
-        Collector name
-        <input name="collectors[]" class="Form__input" v-for="n in collectorCount" :key="n">
-        <button @click="collectorCount++" type="button">+</button>
-      </label>
-    </fieldset>
-    <fieldset>
-      <legend>Type Status</legend>
-      <label class="Form__label">
-        Type status
-        <sub>Ctrl-click to select multiple</sub>
-        <select name="type_statuses[]" class="Form__input" multiple>
-          <option v-for="status in typeStatuses" :key="status">{{ status }}</option>
-        </select>
-      </label>
-    </fieldset>
-    <fieldset>
-      <legend>Registration Number</legend>
-      <label class="Form__label">
-        BM#
-        <input name="registration_number" class="Form__input">
-      </label>
-    </fieldset>
-    <fieldset>
-      <legend>Sex/Stage</legend>
-      <label class="Form__label">
-        Total count
-        <input name="total_count" type="number" class="Form__input">
-      </label>
-      <div class="Form__radioset">
-        <label v-for="stage in ['adult female', 'adult male', 'nymph']" :key="stage" class="Form__checkbutton">
-          <input name="stage[]" type="checkbox" :value="stage">
-          {{ stage }}
+        <label class="Form__label">User email
+          <input type="email" name="user_email" v-model="userEmail" class="Form__input">
         </label>
+      </fieldset>
+
+      <div class="Form__error" v-if="error">
+        There were some errors in the form:
+        <ul>
+          <li v-for="e in error" :key="e">{{ e }}</li>
+        </ul>
       </div>
-    </fieldset>
+    </div>
 
-    <fieldset>
-      <legend>Meta</legend>
-      <label class="Form__checkbutton">
-        <input type="checkbox" name="requires_verification">
-        Requires Verification
-      </label>
-      <label class="Form__label">User email
-        <input type="email" name="user_email" v-model="userEmail" class="Form__input">
-      </label>
-    </fieldset>
-
-    <button>Submit</button>
-
-    <div class="Form__error" v-if="error">
-      There were some errors in the form:
-      <ul>
-        <li v-for="e in error" :key="e">{{ e }}</li>
-      </ul>
+    <div class="Form__controls">
+      <button class="Form__submit">Submit</button>
     </div>
   </form>
 </template>
@@ -191,16 +195,42 @@ export default {
 
 <style>
 .Form {
+  overflow-y: auto;
+}
+
+.Form__controls {
+  padding: 10px;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  display: flex;
+  justify-content: space-around;
+}
+
+.Form__submit {
+  min-width: 50%;
+  line-height: 2;
+}
+
+.Form__wrapper {
+  /* Make max height ridiculously large
+     so columns never overflow horizontally */
   columns: 2 250px;
+  max-height: 1000vh;
 }
 
 .Form__label {
   display: block;
   font-weight: bold;
   font-size: 0.9em;
+}
+
+.Form__fieldset {
   -webkit-column-break-inside: avoid; /* Chrome, Safari, Opera */
-          page-break-inside: avoid; /* Firefox */
-               break-inside: avoid;
+  page-break-inside: avoid; /* Firefox */
+  break-inside: avoid;
 }
 
 .Form__radioset {
