@@ -3,9 +3,8 @@ const getJson = file => fetch(file).then(res => res.json());
 const getCountries = () => getJson('./countries.json');
 const getHosts = () => getJson('./hosts.json');
 
-const localities = ['Location', 'Unreadable', 'Zoo', 'Museum', 'Unlikely host range (bred, lab, introduced)'];
+const localities = ['Real', 'Unreadable', 'Artificial (e.g. museum, zoo, bred, lab etc)'];
 const typeStatuses = [
-  'non-type',
   'Allotype',
   'Holotype',
   'Lectotype',
@@ -14,7 +13,7 @@ const typeStatuses = [
   'Paratype',
   'Syntype',
   '*Other'
-];
+]
 
 const hostTypes = [
   'No host',

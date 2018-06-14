@@ -101,9 +101,9 @@ module.exports = {
         ${JSON.stringify((data.type_statuses || []).filter(Boolean))},
         ${data.registration_number},
         ${data.total_count || null},
-        ${!!stage.includes('adult female')},
-        ${!!stage.includes('adult male')},
-        ${!!stage.includes('nymph')},
+        ${!!stage.includes('adult female(s)')},
+        ${!!stage.includes('adult male(s)')},
+        ${!!stage.includes('nymph(s)')},
         ${data.user_email},
         ${!!data.requires_verification}
       );`

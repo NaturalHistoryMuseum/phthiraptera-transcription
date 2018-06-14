@@ -3,26 +3,6 @@
     <div class="Form__wrapper">
       <input type="hidden" name="barcode" :value="barcode">
       <fieldset class="Form__fieldset">
-        <legend>Locality</legend>
-        <div class="Form__radioset">
-          <label v-for="l in localities" :key="l" class="Form__checkbutton">
-            <input type="radio" name="locality" :value="l" :checked="l==='Location'" v-once>
-            {{ l }}
-          </label>
-        </div>
-        <label class="Form__label">
-          Country
-          <select name="country" class="Form__input">
-            <option selected></option>
-            <option v-for="country in countries" :key="country">{{ country }}</option>
-          </select>
-        </label>
-        <label class="Form__label">
-          Precise locality
-          <input class="Form__input" name="precise_locality">
-        </label>
-      </fieldset>
-      <fieldset class="Form__fieldset">
         <legend>Host</legend>
         <label class="Form__label">
           Host
@@ -39,9 +19,37 @@
         </div>
       </fieldset>
       <fieldset class="Form__fieldset">
+        <legend>Locality</legend>
+        <div class="Form__radioset">
+          <label v-for="l in localities" :key="l" class="Form__checkbutton">
+            <input type="radio" name="locality" :value="l" :checked="l==='Real'" v-once>
+            {{ l }}
+          </label>
+        </div>
+        <label class="Form__label">
+          Country
+          <select name="country" class="Form__input">
+            <option selected></option>
+            <option v-for="country in countries" :key="country">{{ country }}</option>
+          </select>
+        </label>
+        <label class="Form__label">
+          Precise locality
+          <input class="Form__input" name="precise_locality">
+        </label>
+      </fieldset>
+      <fieldset class="Form__fieldset">
+        <legend>Collector(s)</legend>
+        <label class="Form__label">
+          Collector name
+          <input name="collectors[]" class="Form__input" v-for="n in collectorCount" :key="n">
+          <button @click="collectorCount++" type="button">+</button>
+        </label>
+      </fieldset>
+      <fieldset class="Form__fieldset">
         <legend>Collection Date</legend>
         <label class="Form__label" for="collection_day">
-          Date (dd-mm-yyy)
+          Date (dd-mm-yyyy)
         </label>
         <div class="Form__input">
           <input type="number" min="1" max="31" name="collection_day" id="collection_day">
@@ -56,11 +64,10 @@
         </div>
       </fieldset>
       <fieldset class="Form__fieldset">
-        <legend>Collector</legend>
+        <legend>Registration Number</legend>
         <label class="Form__label">
-          Collector name
-          <input name="collectors[]" class="Form__input" v-for="n in collectorCount" :key="n">
-          <button @click="collectorCount++" type="button">+</button>
+          BM number (e.g. <em>BM 1980-1</em>)
+          <input name="registration_number" class="Form__input">
         </label>
       </fieldset>
       <fieldset class="Form__fieldset">
@@ -74,20 +81,13 @@
         </label>
       </fieldset>
       <fieldset class="Form__fieldset">
-        <legend>Registration Number</legend>
-        <label class="Form__label">
-          BM#
-          <input name="registration_number" class="Form__input">
-        </label>
-      </fieldset>
-      <fieldset class="Form__fieldset">
         <legend>Sex/Stage</legend>
         <label class="Form__label">
           Total count
           <input name="total_count" type="number" class="Form__input">
         </label>
         <div class="Form__radioset">
-          <label v-for="stage in ['adult female', 'adult male', 'nymph']" :key="stage" class="Form__checkbutton">
+          <label v-for="stage in ['adult female(s)', 'adult male(s)', 'nymph(s)']" :key="stage" class="Form__checkbutton">
             <input name="stage[]" type="checkbox" :value="stage">
             {{ stage }}
           </label>
@@ -95,7 +95,7 @@
       </fieldset>
 
       <fieldset class="Form__fieldset">
-        <legend>Meta</legend>
+        <legend>Other</legend>
         <label class="Form__checkbutton">
           <input type="checkbox" name="requires_verification">
           Requires Verification
@@ -111,8 +111,8 @@
     </div>
 
     <div class="Form__controls">
-      <label class="Form__label Form__control">User email
-        <input type="email" name="user_email" v-model="userEmail" class="Form__input">
+      <label class="Form__label Form__control">Your email (required)
+        <input type="email" name="user_email" v-model="userEmail" class="Form__input" required>
       </label>
       <button class="Form__submit Form__control Form__input">Submit</button>
     </div>
@@ -126,9 +126,8 @@ const getJson = file => fetch(file).then(res => res.json());
 const getCountries = () => getJson('./countries.json');
 const getHosts = () => getJson('./hosts.json');
 
-const localities = ['Location', 'Unreadable', 'Zoo', 'Museum', 'Unlikely host range (bred, lab, introduced)'];
+const localities = ['Real', 'Unreadable', 'Artificial (e.g. museum, zoo, bred, lab etc)'];
 const typeStatuses = [
-  'non-type',
   'Allotype',
   'Holotype',
   'Lectotype',
