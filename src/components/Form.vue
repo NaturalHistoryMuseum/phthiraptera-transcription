@@ -100,12 +100,9 @@
           <input type="checkbox" name="requires_verification">
           Requires Verification
         </label>
-        <label class="Form__label">User email
-          <input type="email" name="user_email" v-model="userEmail" class="Form__input">
-        </label>
       </fieldset>
 
-      <div class="Form__error" v-if="error">
+      <div class="Form__error" v-if="error" id="errors">
         There were some errors in the form:
         <ul>
           <li v-for="e in error" :key="e">{{ e }}</li>
@@ -114,7 +111,10 @@
     </div>
 
     <div class="Form__controls">
-      <button class="Form__submit">Submit</button>
+      <label class="Form__label Form__control">User email
+        <input type="email" name="user_email" v-model="userEmail" class="Form__input">
+      </label>
+      <button class="Form__submit Form__control Form__input">Submit</button>
     </div>
   </form>
 </template>
@@ -196,6 +196,8 @@ export default {
 <style>
 .Form {
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .Form__controls {
@@ -206,12 +208,18 @@ export default {
   width: 100%;
   background: white;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
+  background: #EEE;
+}
+
+.Form__control {
+  display: block;
+  line-height: 2;
+  flex: 0 1 49%;
 }
 
 .Form__submit {
-  min-width: 50%;
-  line-height: 2;
+  min-width: 25%;
 }
 
 .Form__wrapper {
@@ -219,6 +227,8 @@ export default {
      so columns never overflow horizontally */
   columns: 2 250px;
   max-height: 1000vh;
+  flex: 1;
+  padding-bottom: 100px;
 }
 
 .Form__label {

@@ -39,6 +39,8 @@ eventBus.$on('transcribe', async payload => {
 
   if (!res.ok) {
     app.error = await res.json();
+
+    Vue.nextTick(() => location.hash = '#errors');
     return;
   }
 

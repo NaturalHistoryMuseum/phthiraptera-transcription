@@ -34,6 +34,10 @@ html, body {
   height: 100%;
 }
 
+.AppWrapper > *:last-child {
+  flex: 1;
+}
+
 .AppWrapper__nav {
   background: rgb(34, 34, 34);
   color: white;
@@ -44,9 +48,5 @@ html, body {
 
 .AppWrapper__nav > * {
   margin: 7px;
-}
-
-.AppWrapper__content {
-  flex: 1;
 }
 </style>
