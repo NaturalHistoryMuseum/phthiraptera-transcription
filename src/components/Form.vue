@@ -77,13 +77,11 @@
       </fieldset>
       <fieldset class="Form__fieldset">
         <legend>Type Status</legend>
-        <label class="Form__label">
-          Type status
-          <sub>Ctrl-click to select multiple</sub>
-          <select name="type_statuses[]" class="Form__input" multiple>
-            <option v-for="status in typeStatuses" :key="status">{{ status }}</option>
-          </select>
-        </label>
+        <div class="Form__radioset">
+          <label v-for="status in typeStatuses" :key="status" class="Form__checkbutton">
+            <input type="checkbox" name="type_statuses[]" :value="status">{{ status }}
+          </label>
+        </div>
       </fieldset>
       <fieldset class="Form__fieldset">
         <legend>Sex/Stage</legend>
