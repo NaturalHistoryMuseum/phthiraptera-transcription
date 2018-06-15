@@ -111,11 +111,17 @@
       </div>
     </div>
 
-    <div class="Form__controls">
-      <label class="Form__label Form__control">Your email (required)
-        <input type="email" name="user_email" v-model="userEmail" class="Form__input" required>
-      </label>
-      <button class="Form__submit Form__control Form__input">Submit</button>
+    <div class="Form__footer">
+      <div class="Form__controls">
+        <label class="Form__label Form__control">Your email (required)
+          <input type="email" name="user_email" v-model="userEmail" class="Form__input" required>
+        </label>
+        <button class="Form__submit Form__control Form__input">Submit</button>
+      </div>
+      <details class="Form__data-protection">
+        <summary>Data Protection</summary>
+        The Natural History Museum will use your personal data in accordance with data protection legislation to process your requests. For more information please read our <a href="http://www.nhm.ac.uk/about-us/privacy-notice.html">privacy notice</a>.
+      </details>
     </div>
   </form>
 </template>
@@ -200,16 +206,22 @@ export default {
   flex-direction: column;
 }
 
-.Form__controls {
+.Form__footer {
   padding: 10px;
   position: sticky;
   bottom: 0;
   left: 0;
   width: 100%;
-  background: white;
+  background: #EEE;
+}
+
+.Form__controls {
   display: flex;
   justify-content: space-between;
-  background: #EEE;
+}
+
+.Form__data-protection {
+  font-size: 0.8em;
 }
 
 .Form__control {
