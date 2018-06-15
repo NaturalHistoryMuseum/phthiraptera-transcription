@@ -46,6 +46,11 @@ module.exports = {
 
     const host = data.host || data.host_other;
 
+    const collectors = data.collector_surnames.map((surname, index) => ({
+      surname,
+      initials: data.collector_initials[index]
+    })).filter(c => c.surname || c.initials)
+
     validate(rowCount >= 1,`Unknown asset with barcode ${data.barcode}`);
     validate(localities.includes(data.locality), `Invalid locality "${data.locality}"`);
     validate(!data.country || countries.includes(data.country), `Invalid country "${data.country}"`);
@@ -63,6 +68,7 @@ module.exports = {
     }
     validate(!data.total_count ||  data.total_count > 0, `Total count must be > 0 or empty`)
     validate(!!data.user_email, 'User email must not be empty.')
+    validate(collectors.every(c => c.surname && c.initials), `Add initials and surname to all collectors`)
 
     await validate.throw();
 
@@ -97,7 +103,7 @@ module.exports = {
         ${data.host_type},
         ${date},
         ${!!data.collection_range},
-        ${JSON.stringify((data.collectors || []).filter(Boolean))},
+        ${JSON.stringify(collectors)},
         ${JSON.stringify((data.type_statuses || []).filter(Boolean))},
         ${data.registration_number},
         ${data.total_count || null},

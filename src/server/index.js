@@ -6,6 +6,7 @@ const auth = require('./auth');
 const { render, html, login }  = require('./render');
 const api = require('./api');
 const { nextAsset, saveTranscription, readData } = require('./api/database');
+const RecursiveIterator = require('recursive-iterator');
 
 const app = express();
 
@@ -75,52 +76,47 @@ const flatMap = fn => a => a.reduce((acc, val) => acc.concat(fn(val)), []);
 app.get('/csv', async (req, res, next) => {
   try {
     const data = await readData();
-  
-    // List of field names
-    const fieldNames = [],
-          arrayFields = []
 
-    for (const field of data.fields) {
-      fieldNames.push(field.name);
+    // Some fields are JSON so we need to flatten them out before
+    // converting to CSV
 
-      if (field.dataTypeID === JSONB_TYPE) {
-        arrayFields.push(field.name)
-      }
+    // Find all column names
+    const iterator = new RecursiveIterator(data.rows);
+    const cols = new Set();
+
+    for (const { path, node } of iterator) {
+      if (!iterator.isLeaf(node)) continue;
+
+      cols.add(path.slice(1).join('.'));
     }
 
-    const colSizes = data.rows.reduce((colSizes, row) => {
-      for (const i of arrayFields) {
-        colSizes[i] = Math.max(colSizes[i] || 0, row[i].length)
-      }
-      return colSizes;
-    }, {});
-
-    const rows = data.rows.map(row => {
-      const newRow = [];
-
-      for(const field of fieldNames) {
-        if (field in colSizes) {
-          const pad = Math.max(colSizes[field] - row[field].length, 0);
-          newRow.push(...row[field], ...Array(pad))
-        } else {
-          newRow.push(row[field])
+    // Sort columns alphanumerically
+    const colPaths = Array.from(cols).sort(
+      (a, b) => {
+        const len = Math.min(a.length, b.length);
+        for (let i = 0; i < len; i++) {
+          if (a[i] !== b[i]) {
+            return a[i] < b[i] ? -1 : 1;
+          }
         }
+
+        return a.length - b.length;
       }
+    );
 
-      return newRow;
-    });
-
-    const cols = fieldNames.reduce(
-      (cols, fieldName) => cols.concat(
-        fieldName in colSizes ?
-          Array(colSizes[fieldName]).fill(fieldName).map((el, ix) => `${el}[${ix}]`)
-          : fieldName
-      ),
-      []
-    )
+    // Now map rows to their flattened counterparts using the column paths
+    // Use null where no value is present
+    const rows = data.rows.map(
+      row => colPaths.map(
+        path => path.split('.').reduce(
+          (node, key) => key in Object(node) ? node[key] : null,
+          row
+        )
+      )
+    );
 
     res.type('text/csv; charset=utf-8; headers=present');
-    res.send(toCSV([cols, ...rows]));
+    res.send(toCSV([colPaths, ...rows]));
   } catch(e) {
     next(e);
   }

@@ -45,11 +45,17 @@
       </fieldset>
       <fieldset class="Form__fieldset">
         <legend>Collector(s)</legend>
-        <label class="Form__label">
-          Collector name
-          <input name="collectors[]" class="Form__input" v-for="n in collectorCount" :key="n">
-          <button @click="collectorCount++" type="button">+</button>
-        </label>
+        <div v-for="n in collectorCount" :key="n" class="Form__row">
+          <label class="Form__label Form__initials-col">
+            Collector initials
+            <input name="collector_initials[]" class="Form__input">
+          </label>
+          <label class="Form__label Form__surname-col">
+            Collector surname
+            <input name="collector_surnames[]" class="Form__input">
+          </label>
+        </div>
+        <button @click="collectorCount++" type="button">+</button>
       </fieldset>
       <fieldset class="Form__fieldset">
         <legend>Collection Date</legend>
@@ -295,6 +301,19 @@ export default {
   color: #633000;
   margin: 0.5em;
   padding: 0.5em;
+}
+
+.Form__row {
+  display: flex;
+  align-items: flex-end;
+}
+
+.Form__initials-col {
+  flex: 1;
+}
+
+.Form__surname-col {
+  flex: 2;
 }
 
 [name="collection_day"], [name="collection_month"] {

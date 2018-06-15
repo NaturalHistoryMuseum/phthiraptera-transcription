@@ -31,6 +31,7 @@
     "pg": "^7.4.3",
     "pg-connection-string": "^2.0.0",
     "postgres-migrations": "neonpaul/postgres-migrations",
+    "recursive-iterator": "^3.3.0",
     "resize-observer-polyfill": "^1.5.0",
     "sql-tag": "^1.0.1",
     "vue": "^2.5.16",
