@@ -14,9 +14,13 @@ const verifyJwt = (token, hash) => {
   }
 }
 
-const hash = getenv('PW_HASH', '$2b$10$hSvCHrEyrJBnMkfiZRTk0euWf0zuMqKA8iD7QFEgGwg6kZX8f44ye');
+const hash = getenv('PW_HASH', '');
 
 module.exports = fallback => {
+  if (!hash) {
+    return (req, res, next) => next();
+  }
+
   const app = express.Router();
 
   app.use(cookieParser());
