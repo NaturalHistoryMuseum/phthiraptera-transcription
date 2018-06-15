@@ -3,6 +3,8 @@ const { localities, typeStatuses, hostTypes } = require('../../components/form-f
 const countries = require('../../data/countries.json');
 const validator = require('../validator');
 const getenv = require('getenv');
+const axios = require('axios')
+const sql = require('sql-tag')
 
 // Output the DATE type as just a tex string
 types.setTypeParser( 1082, 'text', v => v);
@@ -24,12 +26,6 @@ pool.on('error', (err, client) => {
   process.exit(-1)
 })
 
-// Tag to make use of pg parameterised queries
-const query = client => (strings, ...params) => {
-  const q = strings.reduce((query, part, ix) => `${query}$${ix}${part}`)
-  return client.query(q, params)
-}
-
 // Helper function to connect & disconnect
 const connect = fn => async (...args) => {
   const client = await pool.connect();
@@ -41,10 +37,9 @@ const connect = fn => async (...args) => {
   }
 }
 
-
 module.exports = {
   saveTranscription: connect(async (client, data) => {
-    const { rowCount } = await query(client)`SELECT * FROM images WHERE barcode=${data.barcode}`;
+    const { rowCount } = await client.query(sql`SELECT * FROM images WHERE barcode=${data.barcode}`);
     const date = (data.collection_year || data.collection_month || data.collection_day) ? new Date(data.collection_year, data.collection_month - 1, data.collection_day) : null;
 
     const validate = validator();
@@ -68,7 +63,7 @@ module.exports = {
 
     const stage = data.stage || [];
 
-    return query(client)`
+    return client.query(sql`
       INSERT INTO fields (
         barcode,
         locality,
@@ -106,22 +101,36 @@ module.exports = {
         ${!!stage.includes('nymph(s)')},
         ${data.user_email},
         ${!!data.requires_verification}
-      );`
+      );`)
   }),
-  nextAsset: connect(async (client) => {
-   const { rows } = await query(client)`
+  nextAsset: connect(async (client, opts = {}) => {
+   const { rows } = await client.query(sql`
       SELECT images.*
       FROM images
         LEFT JOIN fields ON images.barcode = fields.barcode
       WHERE images.asset_id IS NOT NULL
         AND fields.barcode IS NULL;
-    `
-    const bc =
-      //(rows.find(r => r.label === "image 2")).barcode
-      rows[0].barcode
-    return rows.filter(row => row.barcode === bc);
+    `);
+    const barcode = opts.multiple ?
+      (rows.find(r => r.label === "image 2")).barcode :
+      rows[0].barcode;
+
+    const result = axios.get(`http://data.nhm.ac.uk/api/action/datastore_search?resource_id=05ff2255-c38a-40c9-b657-4ccb55ab2feb&limit=5&q=${barcode}`)
+
+    const assets = rows.filter(row => row.barcode === barcode);
+
+    const record = (await result).data.result.records[0];
+    const scientificName = record.genus + ' ' + record.specificEpithet
+    // or record.scientificName
+
+    return {
+      barcode,
+      scientificName,
+      assets
+    };
   }),
+
   readData: connect(async (client) => {
-    return query(client)`SELECT * FROM fields`;
+    return client.query(sql`SELECT * FROM fields`);
   })
 }

@@ -8,7 +8,7 @@ const app = express.Router();
 
 app.get('/', async (req, res, next) => {
   try {
-    res.json(await nextAsset());
+    res.json(await nextAsset({ multiple: req.query.multiple }));
   } catch(e) {
     next(e)
   }

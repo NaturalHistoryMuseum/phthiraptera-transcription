@@ -2,10 +2,10 @@
   <div class="Transcription">
     <div ref="images" class="Transcription__wrapper">
       <div class="Transcription__images" >
-        <TImage v-for="record in records" :assetId="record.asset_id" :key="record.asset_id" :width="width" />
+        <TImage v-for="record in records.assets" :assetId="record.asset_id" :key="record.asset_id" :width="width" />
       </div>
     </div>
-    <Form :barcode="records[0].barcode" :error="error"/>
+    <Form :barcode="records.barcode" :error="error" :scientificName="records.scientificName"/>
   </div>
 </template>
 
@@ -28,7 +28,7 @@ export default {
   props: ['records', 'error'],
   computed: {
     width() {
-      const n = this.records.length;
+      const n = this.records.assets.length;
       const h = this.imageSetHeight;
       const w = this.imageSetWidth;
 

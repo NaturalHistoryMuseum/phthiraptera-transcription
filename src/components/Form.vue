@@ -1,5 +1,6 @@
 <template>
   <form ref="form" class="Form" method="POST" @submit="transcribe">
+    <h2>{{ scientificName }}</h2>
     <div class="Form__wrapper">
       <input type="hidden" name="barcode" :value="barcode">
       <fieldset class="Form__fieldset">
@@ -146,7 +147,7 @@ const hostTypes = [
 ]
 
 export default {
-  props: ['barcode', 'error'],
+  props: ['barcode', 'error', 'scientificName'],
   inject: ['eventBus'],
   data: () => ({
     collectorCount: 1,
