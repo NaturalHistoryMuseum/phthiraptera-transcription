@@ -110,7 +110,7 @@
           Requires Verification
         </label>
         <label class="Form__label">
-          Notes
+          Explanation (if needed)
           <textarea name="notes" maxlength="255" class="Form__input"></textarea>
         </label>
       </fieldset>
