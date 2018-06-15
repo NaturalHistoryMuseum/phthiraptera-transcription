@@ -7,14 +7,18 @@
         <legend>Host</legend>
         <label class="Form__label">
           Host
-          <input name="host" list="host_list" class="Form__input">
-          <datalist id="host_list">
+          <select name="host" class="Form__input">
+            <option></option>
             <option v-for="host in hosts" :key="host">{{ host }}</option>
-          </datalist>
+          </select>
+        </label>
+        <label class="Form__label">
+          Host (other)
+          <input name="host_other" class="Form__input">
         </label>
         <div class="Form__radioset">
           <label v-for="hostType in hostTypes" :key="hostType" class="Form__checkbutton">
-            <input type="radio" name="host_type" :value="hostType" :checked="hostType==='No host'" v-once>
+            <input type="radio" name="host_type" :value="hostType" required>
             {{ hostType }}
           </label>
         </div>
