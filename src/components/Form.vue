@@ -109,6 +109,10 @@
           <input type="checkbox" name="requires_verification">
           Requires Verification
         </label>
+        <label class="Form__label">
+          Notes
+          <textarea name="notes" maxlength="255" class="Form__input"></textarea>
+        </label>
       </fieldset>
 
       <div class="Form__error" v-if="error" id="errors">

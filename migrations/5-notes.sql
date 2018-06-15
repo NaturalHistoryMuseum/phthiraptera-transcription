@@ -1,0 +1,2 @@
+ALTER TABLE fields
+  ADD notes VARCHAR(255);

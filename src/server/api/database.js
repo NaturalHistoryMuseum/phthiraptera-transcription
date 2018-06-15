@@ -69,6 +69,7 @@ module.exports = {
     validate(!data.total_count ||  data.total_count > 0, `Total count must be > 0 or empty`)
     validate(!!data.user_email, 'User email must not be empty.')
     validate(collectors.every(c => c.surname && c.initials), `Add initials and surname to all collectors`)
+    validate(data.notes.length <= 255, 'Notes must be 255 characters or less')
 
     await validate.throw();
 
@@ -92,7 +93,8 @@ module.exports = {
         adult_male,
         nymph,
         user_email,
-        requires_verification
+        requires_verification,
+        notes
       )
       VALUES(
         ${data.barcode},
@@ -111,7 +113,8 @@ module.exports = {
         ${!!stage.includes('adult male(s)')},
         ${!!stage.includes('nymph(s)')},
         ${data.user_email},
-        ${!!data.requires_verification}
+        ${!!data.requires_verification},
+        ${data.notes}
       );`)
   }),
   nextAsset: connect(async (client, opts = {}) => {
