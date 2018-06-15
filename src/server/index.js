@@ -74,6 +74,11 @@ const pad = (a, n, string = '') =>
 const flatMap = fn => a => a.reduce((acc, val) => acc.concat(fn(val)), []);
 
 app.get('/csv', async (req, res, next) => {
+  if (!process.env.CSV_DOWNLOAD) {
+    res.status(451).send('Disabled for data protection reasons.');
+    return;
+  }
+
   try {
     const data = await readData();
 
