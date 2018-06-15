@@ -1,11 +1,17 @@
 <template>
   <div class="Transcription">
-    <div ref="images" class="Transcription__wrapper">
-      <div class="Transcription__images" >
-        <TImage v-for="record in records.assets" :assetId="record.asset_id" :key="record.asset_id" :width="width" />
+    <template v-if="records">
+      <div ref="images" class="Transcription__wrapper">
+        <div class="Transcription__images" >
+          <TImage v-for="record in records.assets" :assetId="record.asset_id" :key="record.asset_id" :width="width" />
+        </div>
       </div>
+      <Form :barcode="records.barcode" :error="error" :scientificName="records.scientificName"/>
+    </template>
+    <div v-else class="Transcription__finished">
+      <h2>All records have been processed</h2>
+      <p>There are no more images to transcribe at this time.</p>
     </div>
-    <Form :barcode="records.barcode" :error="error" :scientificName="records.scientificName"/>
   </div>
 </template>
 
@@ -82,6 +88,12 @@ export default {
 
 .Transcription__wrapper {
   overflow: auto;
+}
+
+.Transcription__finished {
+  max-width: 500px;
+  padding: 0 20px;
+  margin: auto;
 }
 
 @media(orientation: portrait) {

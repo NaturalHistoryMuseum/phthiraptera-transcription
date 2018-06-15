@@ -104,13 +104,18 @@ module.exports = {
       );`)
   }),
   nextAsset: connect(async (client, opts = {}) => {
-   const { rows } = await client.query(sql`
+   const { rows } = opts.empty ? { rows: [] } : await client.query(sql`
       SELECT images.*
       FROM images
         LEFT JOIN fields ON images.barcode = fields.barcode
       WHERE images.asset_id IS NOT NULL
         AND fields.barcode IS NULL;
     `);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
     const barcode = opts.multiple ?
       (rows.find(r => r.label === "image 2")).barcode :
       rows[0].barcode;

@@ -44,7 +44,7 @@ app.post('/', async (req, res, next) => {
 
 app.get('/', async (req, res, next) => {
   try {
-    const data = await nextAsset({ multiple: req.query.multiple });
+    const data = await nextAsset({ multiple: req.query.multiple, empty: req.query.empty });
     res.send(html({
       title: 'Phthiraptera Transcriptions',
       head: `
