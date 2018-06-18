@@ -40,8 +40,6 @@ const connect = fn => async (...args) => {
 module.exports = {
   saveTranscription: connect(async (client, data) => {
     const { rowCount } = await client.query(sql`SELECT * FROM images WHERE barcode=${data.barcode}`);
-    const date = (data.collection_year || data.collection_month || data.collection_day) ? new Date(data.collection_year, data.collection_month - 1, data.collection_day) : null;
-
     const validate = validator();
 
     const host = data.host || data.host_other;
@@ -56,9 +54,6 @@ module.exports = {
     validate(!data.country || countries.includes(data.country), `Invalid country "${data.country}"`);
     validate(!data.host_type || hostTypes.includes(data.host_type), `Invalid host type "${data.host_type}"`);
     validate(!(data.host && data.host_other), 'Fill in either "Host" or "Host (other)", but not both')
-    const validDate = date === null || (!isNaN(date) && data.collection_year > 0 && data.collection_month > 0 && data.collection_day > 0);
-    validate(validDate, `Invalid date: ${data.collection_year}-${data.collection_month}-${data.collection_day}`);
-    validate(date < Date.now(), `Date must be in the past.`)
     for(const typeStatus of (data.type_statuses || [])) {
       validate(!!typeStatuses.includes(typeStatus), `Invalid type status "${typeStatus}`)
     }
@@ -79,7 +74,9 @@ module.exports = {
         precise_locality,
         host,
         host_type,
-        collection_date,
+        collection_year,
+        collection_month,
+        collection_day,
         collection_range,
         collectors,
         type_statuses,
@@ -99,7 +96,9 @@ module.exports = {
         ${data.precise_locality},
         ${host},
         ${data.host_type},
-        ${date},
+        ${data.collection_year},
+        ${data.collection_month},
+        ${data.collection_day},
         ${!!data.collection_range},
         ${JSON.stringify(collectors)},
         ${JSON.stringify((data.type_statuses || []).filter(Boolean))},
