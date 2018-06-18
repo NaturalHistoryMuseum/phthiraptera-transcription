@@ -6,20 +6,24 @@
       <fieldset class="Form__fieldset">
         <legend>Host</legend>
         <label class="Form__label">
-          Host
+          Host (select from list - species, Genus)
           <select name="host" class="Form__input">
             <option></option>
             <option v-for="host in hosts" :key="host">{{ host }}</option>
           </select>
         </label>
         <label class="Form__label">
-          Host (other)
+          Host (if not in list)
           <input name="host_other" class="Form__input">
         </label>
         <div class="Form__radioset">
           <label v-for="hostType in hostTypes" :key="hostType" class="Form__checkbutton">
-            <input type="radio" name="host_type" :value="hostType" required>
+            <input type="radio" name="host_type" :value="hostType">
             {{ hostType }}
+          </label>
+          <label class="Form__checkbutton">
+            <input type="radio" name="host_type" value="" checked>
+            (none of the above)
           </label>
         </div>
       </fieldset>
@@ -92,7 +96,7 @@
       <fieldset class="Form__fieldset">
         <legend>Sex/Stage</legend>
         <label class="Form__label">
-          Total count
+          Total number of specimens
           <input name="total_count" type="number" class="Form__input">
         </label>
         <div class="Form__radioset">

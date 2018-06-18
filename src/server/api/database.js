@@ -54,12 +54,8 @@ module.exports = {
     validate(rowCount >= 1,`Unknown asset with barcode ${data.barcode}`);
     validate(localities.includes(data.locality), `Invalid locality "${data.locality}"`);
     validate(!data.country || countries.includes(data.country), `Invalid country "${data.country}"`);
-    validate(!!data.host_type && (!host || (data.host_type !== 'No host')), `Select a host type`);
-    if (data.host_type) {
-      validate(hostTypes.includes(data.host_type), `Invalid host type "${data.host_type}"`);
-      validate(!(data.host && data.host_other), 'Fill in either "Host" or "Host (other)", but not both')
-      validate(!!host || (data.host_type === 'No host'), `Host must not be empty if host type is selected`);
-    }
+    validate(!data.host_type || hostTypes.includes(data.host_type), `Invalid host type "${data.host_type}"`);
+    validate(!(data.host && data.host_other), 'Fill in either "Host" or "Host (other)", but not both')
     const validDate = date === null || (!isNaN(date) && data.collection_year > 0 && data.collection_month > 0 && data.collection_day > 0);
     validate(validDate, `Invalid date: ${data.collection_year}-${data.collection_month}-${data.collection_day}`);
     validate(date < Date.now(), `Date must be in the past.`)
@@ -69,7 +65,7 @@ module.exports = {
     validate(!data.total_count ||  data.total_count > 0, `Total count must be > 0 or empty`)
     validate(!!data.user_email, 'User email must not be empty.')
     validate(collectors.every(c => c.surname && c.initials), `Add initials and surname to all collectors`)
-    validate(data.notes.length <= 255, 'Notes must be 255 characters or less')
+    validate(data.notes.length <= 255, 'Explanation must be 255 characters or less')
 
     await validate.throw();
 
