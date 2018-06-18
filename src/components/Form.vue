@@ -17,13 +17,17 @@
           <input name="host_other" class="Form__input">
         </label>
         <div class="Form__radioset">
-          <label v-for="hostType in hostTypes" :key="hostType" class="Form__checkbutton">
-            <input type="radio" name="host_type" :value="hostType">
-            {{ hostType }}
+          <label class="Form__checkbutton">
+            <input type="radio" name="host_type" value="No host">
+            No host
           </label>
           <label class="Form__checkbutton">
             <input type="radio" name="host_type" value="" checked>
-            (none of the above)
+            Host present
+          </label>
+          <label v-for="hostType in hostTypes.slice(1)" :key="hostType" class="Form__checkbutton">
+            <input type="radio" name="host_type" :value="hostType">
+            Host present: {{ hostType }}
           </label>
         </div>
       </fieldset>
