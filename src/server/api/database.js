@@ -1,10 +1,13 @@
-const { Client, Pool, types } = require('pg');
+const { Pool, types } = require('pg');
+const jwt = require('jsonwebtoken');
 const { localities, typeStatuses, hostTypes } = require('../../components/form-fields');
 const countries = require('../../data/countries.json');
 const validator = require('../validator');
 const getenv = require('getenv');
 const axios = require('axios')
 const sql = require('sql-tag')
+
+const JWT_KEY = getenv('JWT_KEY', 'IJQLX9J9DU8Q');
 
 // Output the DATE type as just a tex string
 types.setTypeParser( 1082, 'text', v => v);
@@ -39,7 +42,15 @@ const connect = fn => async (...args) => {
 
 module.exports = {
   saveTranscription: connect(async (client, data) => {
-    const { rowCount } = await client.query(sql`SELECT * FROM images WHERE barcode=${data.barcode}`);
+    const { barcode, exp } = jwt.verify(data.token, JWT_KEY, { ignoreExpiration: true });
+
+    if (exp < Date.now()) {
+      if((await client.query(sql`SELECT * FROM fields WHERE barcode=${barcode}`)).rowCount > 0) {
+        return;
+        //throw new Error('This slide was transcribed while you were filling out the form. Please refresh and try another.');
+      }
+    }
+
     const validate = validator();
 
     const host = data.host || data.host_other;
@@ -49,7 +60,6 @@ module.exports = {
       initials: data.collector_initials[index]
     })).filter(c => c.surname || c.initials)
 
-    validate(rowCount >= 1,`Unknown asset with barcode ${data.barcode}`);
     validate(localities.includes(data.locality), `Invalid locality "${data.locality}"`);
     validate(!data.country || countries.includes(data.country), `Invalid country "${data.country}"`);
     validate(!data.host_type || hostTypes.includes(data.host_type), `Invalid host type "${data.host_type}"`);
@@ -90,7 +100,7 @@ module.exports = {
         notes
       )
       VALUES(
-        ${data.barcode},
+        ${barcode},
         ${data.locality},
         ${data.country},
         ${data.precise_locality},
@@ -113,12 +123,18 @@ module.exports = {
       );`)
   }),
   nextAsset: connect(async (client, opts = {}) => {
-   const { rows } = opts.empty ? { rows: [] } : await client.query(sql`
+    const timeoutMins = getenv('TIMEOUT_MINS', '5');
+
+    const { rows } = opts.empty ? { rows: [] } : await client.query(`
       SELECT images.*
       FROM images
         LEFT JOIN fields ON images.barcode = fields.barcode
       WHERE images.asset_id IS NOT NULL
-        AND fields.barcode IS NULL;
+        AND fields.barcode IS NULL
+        AND (
+          access_date IS NULL
+          OR access_date < NOW() - INTERVAL '${timeoutMins} minutes'
+        );
     `);
 
     if (rows.length === 0) {
@@ -129,22 +145,37 @@ module.exports = {
       (rows.find(r => r.label === "image 2")).barcode :
       rows[0].barcode;
 
+    await client.query(sql`UPDATE images SET access_date=NOW() WHERE barcode=${barcode}`);
+
     const result = axios.get(`http://data.nhm.ac.uk/api/action/datastore_search?resource_id=05ff2255-c38a-40c9-b657-4ccb55ab2feb&limit=5&q=${barcode}`)
 
     const assets = rows.filter(row => row.barcode === barcode);
 
     const record = (await result).data.result.records[0];
-    const scientificName = record.genus + ' ' + record.specificEpithet
+    const scientificName = record.genus + ' ' + record.specificEpithet;
     // or record.scientificName
 
+    const token = jwt.sign({barcode}, JWT_KEY, {
+      expiresIn: `${timeoutMins} minutes`
+    });
+
     return {
-      barcode,
       scientificName,
-      assets
+      assets,
+      token
     };
   }),
 
   readData: connect(async (client) => {
     return client.query(sql`SELECT * FROM fields`);
+  }),
+
+  release: connect(async (client, token) => {
+    try {
+      const { barcode } = jwt.verify(token, JWT_KEY);
+      await client.query(sql`UPDATE images SET access_date=null WHERE barcode=${barcode}`);
+    } catch(e) {
+      console.log(e);
+    }
   })
 }

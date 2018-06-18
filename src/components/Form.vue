@@ -2,7 +2,7 @@
   <form ref="form" class="Form" method="POST" @submit="transcribe">
     <h2>{{ scientificName }}</h2>
     <div class="Form__wrapper">
-      <input type="hidden" name="barcode" :value="barcode">
+      <input type="hidden" name="token" :value="token">
       <fieldset class="Form__fieldset">
         <legend>Host</legend>
         <label class="Form__label">
@@ -173,7 +173,7 @@ const hostTypes = [
 ]
 
 export default {
-  props: ['barcode', 'error', 'scientificName'],
+  props: ['token', 'error', 'scientificName'],
   inject: ['eventBus'],
   data: () => ({
     collectorCount: 1,
@@ -187,14 +187,21 @@ export default {
   mounted() {
     getCountries().then(countries => this.countries = countries);
     getHosts().then(hosts => this.hosts = hosts);
+    window.addEventListener('unload', this.release);
+  },
+  beforeDestroy() {
+    window.removeEventListener('unload', this.release);
   },
   watch: {
-    barcode() {
+    token() {
       this.$refs.form.reset();
       this.collectorCount = 1;
     }
   },
   methods: {
+    release() {
+      navigator.sendBeacon('/api/release/', this.token);
+    },
     transcribe(event){
       const payload = {};
       for (const el of event.target.elements) {

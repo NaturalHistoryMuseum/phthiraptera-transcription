@@ -6,7 +6,7 @@
           <TImage v-for="record in records.assets" :assetId="record.asset_id" :key="record.asset_id" :width="width" />
         </div>
       </div>
-      <Form :barcode="records.barcode" :error="error" :scientificName="records.scientificName"/>
+      <Form :token="records.token" :error="error" :scientificName="records.scientificName"/>
     </template>
     <div v-else class="Transcription__finished">
       <h2>All records have been processed</h2>

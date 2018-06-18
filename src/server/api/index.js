@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { nextAsset, saveTranscription } = require('./database')
-const { Client } = require('pg');
 const { ValidationError } = require('../validator');
 
 const app = express.Router();
@@ -29,7 +28,9 @@ app.use((error, req, res, next) => {
       res.status(400).json(error.errors);
       break;
     default:
-      next(error);
+      res.status(500).json([
+        error.message
+      ])
   }
 })
 

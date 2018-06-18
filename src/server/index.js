@@ -7,6 +7,7 @@ const { render, html, login }  = require('./render');
 const api = require('./api');
 const { nextAsset, saveTranscription, readData } = require('./api/database');
 const RecursiveIterator = require('recursive-iterator');
+const { release } = require('./api/database');
 
 const app = express();
 
@@ -18,6 +19,12 @@ const bundler = new Bundler('src/client/index.js', {
 app.use(bundler.middleware())
 app.use(express.static('src/data'))
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.text());
+
+app.post('/api/release', (req, res) => {
+  release(req.body);
+  res.sendStatus(204);
+})
 
 app.use(auth(async (req, res) => {
   res.send(html({
@@ -128,7 +135,7 @@ app.get('/csv', async (req, res, next) => {
 })
 
 app.use((req, res) => {
-    res.status(404).send('File not found');
+  res.status(404).send('File not found');
 });
 
 const port = process.env.PORT || 1234;
