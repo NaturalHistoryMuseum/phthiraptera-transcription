@@ -142,8 +142,10 @@ module.exports = {
       return null;
     }
 
-    const barcode = opts.multiple ?
-      (rows.find(r => r.label === "image 2")).barcode :
+    const multiple = opts.multiple && (/[23]/.test(opts.multiple) ? opts.multiple : '2')
+
+    const barcode = multiple ?
+      (rows.find(r => r.label === "image " + multiple)).barcode :
       rows[0].barcode;
 
     await client.query(sql`UPDATE images SET access_date=NOW() WHERE barcode=${barcode}`);

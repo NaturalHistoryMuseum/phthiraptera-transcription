@@ -23,8 +23,13 @@ const readCsv = file => new Promise((resolve, reject) => {
 
 module.exports = async (file) => {
   let string = '';
+  let imgHeader;
 
   for (const line of await readCsv(file)) {
+    if(!imgHeader) {
+      imgHeader = Object.keys(line).find(l => /image/i.test(l));
+    }
+
     // process.stdout.clearLine();  // clear current text
     // process.stdout.write(`Importing record ${++i}`);
     // process.stdout.cursorTo(0);
@@ -40,7 +45,7 @@ module.exports = async (file) => {
       VALUES
         ('${line.Barcode}',
          '${line['Multimedia IRN']}',
-         '${line['Image 1/2']}',
+         '${line[imgHeader]}',
          '${line.assetID || null}'
         );
     `
