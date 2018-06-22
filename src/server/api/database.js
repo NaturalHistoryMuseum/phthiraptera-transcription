@@ -153,8 +153,7 @@ module.exports = {
     const assets = rows.filter(row => row.barcode === barcode);
 
     const record = (await result).data.result.records[0];
-    const scientificName = record.genus + ' ' + record.specificEpithet;
-    // or record.scientificName
+    const scientificName = record.specificEpithet ? record.genus + ' ' + record.specificEpithet : record.scientificName;
 
     const token = jwt.sign({barcode}, JWT_KEY, {
       expiresIn: `${timeoutMins} minutes`

@@ -7,6 +7,7 @@
         <legend>Host</legend>
         <label class="Form__label">
           Host (select from list - species, Genus)
+          <sub v-if="firefoxWarning" class="Form__info">This list may take a few seconds to open in some browsers</sub>
           <select name="host" class="Form__input">
             <option></option>
             <option v-for="host in hosts" :key="host">{{ host }}</option>
@@ -182,12 +183,17 @@ export default {
     hosts: [],
     typeStatuses,
     hostTypes,
-    userEmail: ''
+    userEmail: '',
+    firefoxWarning: false
   }),
   mounted() {
     getCountries().then(countries => this.countries = countries);
     getHosts().then(hosts => this.hosts = hosts);
     window.addEventListener('unload', this.release);
+
+    if(/firefox/i.test(navigator.userAgent)) {
+      this.firefoxWarning = true;
+    }
   },
   beforeDestroy() {
     window.removeEventListener('unload', this.release);
@@ -333,6 +339,11 @@ export default {
 
 .Form__surname-col {
   flex: 2;
+}
+
+.Form__info {
+  display: block;
+  font-weight: normal;
 }
 
 [name="collection_day"], [name="collection_month"] {
