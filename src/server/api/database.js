@@ -135,7 +135,7 @@ module.exports = {
           access_date IS NULL
           OR access_date < NOW() - INTERVAL '${timeoutMins} minutes'
         )
-      ORDER BY images.barcode;
+      ORDER BY images.order;
     `);
 
     if (rows.length === 0) {
