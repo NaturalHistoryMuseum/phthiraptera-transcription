@@ -6,12 +6,11 @@
       <fieldset class="Form__fieldset">
         <legend>Host</legend>
         <label class="Form__label">
-          Host (select from list - species, Genus)
-          <sub v-if="firefoxWarning" class="Form__info">This list may take a few seconds to open in some browsers</sub>
-          <select name="host" class="Form__input">
-            <option></option>
+          Host (type and select from list - species, Genus)
+          <input name="host" list="hosts" type="text" class="Form__input" @blur="checkHost">
+          <datalist id="hosts">
             <option v-for="host in hosts" :key="host">{{ host }}</option>
-          </select>
+          </datalist>
         </label>
         <label class="Form__label">
           Host (if not in list)
@@ -183,17 +182,12 @@ export default {
     hosts: [],
     typeStatuses,
     hostTypes,
-    userEmail: '',
-    firefoxWarning: false
+    userEmail: ''
   }),
   mounted() {
     getCountries().then(countries => this.countries = countries);
     getHosts().then(hosts => this.hosts = hosts);
     window.addEventListener('unload', this.release);
-
-    if(/firefox/i.test(navigator.userAgent)) {
-      this.firefoxWarning = true;
-    }
   },
   beforeDestroy() {
     window.removeEventListener('unload', this.release);
@@ -207,6 +201,12 @@ export default {
   methods: {
     release() {
       navigator.sendBeacon('/api/release/', this.token);
+    },
+    checkHost(event) {
+      if (this.hosts.indexOf(event.target.value) === -1) {
+        event.target.form.host_other.value = event.target.value;
+        event.target.value = '';
+      }
     },
     transcribe(event){
       const payload = {};
