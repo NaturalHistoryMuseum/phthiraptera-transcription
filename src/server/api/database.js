@@ -150,12 +150,22 @@ module.exports = {
 
     await client.query(sql`UPDATE images SET access_date=NOW() WHERE barcode=${barcode}`);
 
-    const result = axios.get(`http://data.nhm.ac.uk/api/action/datastore_search?resource_id=05ff2255-c38a-40c9-b657-4ccb55ab2feb&limit=5&q=${barcode}`)
+    const url = `http://data.nhm.ac.uk/api/action/datastore_search?resource_id=05ff2255-c38a-40c9-b657-4ccb55ab2feb&limit=5&q=${barcode}`;
+
+    const httpClient = axios.create();
+    httpClient.defaults.timeout = 2500;
+    const result = httpClient.get(url);
 
     const assets = rows.filter(row => row.barcode === barcode);
 
-    const record = (await result).data.result.records[0];
-    const scientificName = record.specificEpithet ? record.genus + ' ' + record.specificEpithet : record.scientificName;
+    let scientificName = null;
+
+    try {
+      const record = (await result).data.result.records[0];
+      scientificName = record.specificEpithet ? record.genus + ' ' + record.specificEpithet : record.scientificName;
+    } catch(e) {
+      console.warn('Data portal appears to be down; ' + e.toString());
+    }
 
     const token = jwt.sign({barcode}, JWT_KEY, {
       expiresIn: `${timeoutMins} minutes`

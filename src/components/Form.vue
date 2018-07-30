@@ -1,6 +1,7 @@
 <template>
   <form ref="form" class="Form" method="POST" @submit="transcribe">
-    <h2>{{ scientificName }}</h2>
+    <h2 v-if="scientificName">{{ scientificName }}</h2>
+    <div class="Form__warning" v-else>Could not get scientific name - is data portal down?</div>
     <div class="Form__wrapper">
       <input type="hidden" name="token" :value="token">
       <fieldset class="Form__fieldset">
@@ -274,6 +275,13 @@ export default {
   max-height: 1000vh;
   flex: 1;
   padding-bottom: 100px;
+}
+
+.Form__warning {
+  padding: 1em 0.5em;
+  color: #999;
+  font-weight: bold;
+  font-style: italic;
 }
 
 .Form__label {
