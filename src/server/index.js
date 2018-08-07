@@ -93,7 +93,7 @@ app.get('/csv', async (req, res, next) => {
     // converting to CSV
 
     // Find all column names
-    const iterator = new RecursiveIterator(data.rows);
+    const iterator = new RecursiveIterator(data);
     const cols = new Set();
 
     for (const { path, node } of iterator) {
@@ -118,7 +118,7 @@ app.get('/csv', async (req, res, next) => {
 
     // Now map rows to their flattened counterparts using the column paths
     // Use null where no value is present
-    const rows = data.rows.map(
+    const rows = data.map(
       row => colPaths.map(
         path => path.split('.').reduce(
           (node, key) => key in Object(node) ? node[key] : null,

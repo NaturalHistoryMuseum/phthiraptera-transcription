@@ -6,6 +6,7 @@ const validator = require('../validator');
 const getenv = require('getenv');
 const axios = require('axios')
 const sql = require('sql-tag')
+const hosts = require('../../data/hosts.json');
 
 const JWT_KEY = getenv('JWT_KEY', 'IJQLX9J9DU8Q');
 
@@ -178,9 +179,14 @@ module.exports = {
     };
   }),
 
-  readData: connect(async (client) => {
-    return client.query(sql`SELECT * FROM fields`);
-  }),
+  readData: connect(
+    async (client) =>
+      (await client.query(sql`SELECT * FROM fields`))
+        .rows.map(r => ({
+          ...r,
+          is_free_text: !hosts.includes(r.host)
+        }))
+  ),
 
   release: connect(async (client, token) => {
     try {
