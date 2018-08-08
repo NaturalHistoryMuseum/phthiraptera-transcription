@@ -126,6 +126,8 @@ module.exports = {
   nextAsset: connect(async (client, opts = {}) => {
     const timeoutMins = getenv('TIMEOUT_MINS', '5');
 
+    const count = client.query(`select (select count(distinct(barcode)) from images) as total, (select count(*) from fields) as completed`);
+
     const { rows } = opts.empty ? { rows: [] } : await client.query(`
       SELECT images.*
       FROM images
@@ -175,7 +177,8 @@ module.exports = {
     return {
       scientificName,
       assets,
-      token
+      token,
+      ...(await count).rows[0]
     };
   }),
 
