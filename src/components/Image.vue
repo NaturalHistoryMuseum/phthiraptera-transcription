@@ -3,10 +3,18 @@
     <div class="Image__controls">
       <button v-if="!error" @click="rotateBy(-1)">↶</button>
       <button v-if="!error" @click="rotateBy(1)">↷</button>
+      <button v-if="!error" @click="zoomBy(-1)">-</button>
+      <button v-if="!error" @click="zoomBy(1)">+</button>
       {{ image && loading ? 'Loading...' : '' }}
       {{ error || '' }}
     </div>
-    <canvas v-if="image" ref="canvas" class="Image__canvas" :width="width" :height="height"></canvas>
+    <canvas v-if="image"
+            ref="canvas"
+            class="Image__canvas"
+            :width="dims"
+            :height="dims"
+            @mousemove="mousePan"
+            @dblclick="mouseZoom"></canvas>
     <img v-else ref="image" class="Image__canvas" :src="this.src" />
   </div>
 </template>
@@ -16,12 +24,13 @@ export default {
   data() {
     return {
       rotate: 0,
-      zoom: 1,
+      zoom: 0,
       origin: 0,
       loading: true,
       image: null,
       error: null,
-      height: 0
+      height: 0,
+      pan: { x: 0, y: 0 }
     }
   },
   props: ['assetId', 'width'],
@@ -32,6 +41,9 @@ export default {
     ctx() {
       const canvas = this.$refs.canvas;
       return canvas && canvas.getContext('2d');
+    },
+    dims() {
+      return Math.max(this.width, this.height);
     }
   },
   methods: {
@@ -40,6 +52,19 @@ export default {
         d += 4;
       }
       this.rotate = (this.rotate + d) % 4;
+      this.pan = { x: 0, y: 0 };
+    },
+    mousePan(event){
+      this.pan = {
+        x: event.offsetX - this.width / 2,
+        y: event.offsetY
+      };
+    },
+    zoomBy(steps){
+      this.zoom = Math.max(this.zoom + steps, 0);
+    },
+    mouseZoom(event) {
+      this.zoomBy(event.shiftKey ? -1 : 1);
     },
     loadImage() {
       this.loading = true;
@@ -63,16 +88,18 @@ export default {
       const imageSize = Math.max(image.width, image.height);
       const canvasSize = canvas.width;
       const scale = canvasSize / imageSize;
-      const w = scale * image.width;
-      const h = scale * image.height;
+      const zoomFactor = Math.pow(1.5, this.zoom);
+      const w = scale * image.width * zoomFactor;
+      const h = scale * image.height * zoomFactor;
       const rotations = this.rotate;
       const θ = rotations * Math.PI / 2;
 
-      this.height = rotations % 2 ? w : h;
+      this.height = scale * (rotations % 2 ? image.width : image.height);
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       ctx.save();
+      ctx.translate(this.pan.x * (1 - zoomFactor), this.pan.y * (1 - zoomFactor));
       ctx.rotate(θ);
 
       const xCentre = (canvas.width - w)/2;
@@ -105,6 +132,12 @@ export default {
   },
   watch: {
     rotate(val) {
+      this.draw();
+    },
+    zoom() {
+      this.draw();
+    },
+    pan() {
       this.draw();
     },
     assetId() {
