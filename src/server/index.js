@@ -80,6 +80,8 @@ const pad = (a, n, string = '') =>
   }())
 const flatMap = fn => a => a.reduce((acc, val) => acc.concat(fn(val)), []);
 
+const escapeNewlines = value => typeof value === 'string' ? value.replace(/\n/g, '↵') : value;
+
 app.get('/csv', async (req, res, next) => {
   if (!process.env.CSV_DOWNLOAD) {
     res.status(451).send('Disabled for data protection reasons.');
@@ -121,14 +123,14 @@ app.get('/csv', async (req, res, next) => {
     const rows = data.map(
       row => colPaths.map(
         path => path.split('.').reduce(
-          (node, key) => key in Object(node) ? node[key] : null,
+          (node, key) => key in Object(node) ? escapeNewlines(node[key]) : null,
           row
         )
       )
     );
 
     res.type('text/csv; charset=utf-8; headers=present');
-    res.send(toCSV([colPaths, ...rows]));
+    res.send(toCSV([colPaths, ...rows], ';'));
   } catch(e) {
     next(e);
   }
