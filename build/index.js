@@ -7,6 +7,8 @@ module.exports = {
 }
 
 if (require.main === module) {
-  buildAssets();
-  runMigrations();
+  buildAssets().catch(
+    e => console.error(e)
+  );
+  // runMigrations();
 }

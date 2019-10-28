@@ -2,7 +2,7 @@ const Bundler = require('parcel-bundler');
 
 const isDevMode = process.env.NODE_ENV !== 'production';
 
-const run = () => {
+const run = async () => {
   for (const name of ['App', 'Login']) {
     const src = require.resolve(`../src/components/${name}.vue`);
 
@@ -12,7 +12,7 @@ const run = () => {
       minify: false
     })
 
-    bundler.bundle();
+    await bundler.bundle();
 
     if(isDevMode) {
       bundler.on('bundled', bundle => {
