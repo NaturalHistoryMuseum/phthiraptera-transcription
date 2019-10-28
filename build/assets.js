@@ -15,8 +15,11 @@ const run = async () => {
     await bundler.bundle();
 
     if(isDevMode) {
-      bundler.on('bundled', bundle => {
-        delete require.cache[bundle.name];
+      await new Promise(res => {
+        bundler.on('bundled', bundle => {
+          delete require.cache[bundle.name];
+          res();
+        });
       });
     }
   }

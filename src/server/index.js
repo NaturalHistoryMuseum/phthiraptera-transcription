@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const Bundler = require('parcel-bundler');
-const toCSV = require('array-to-csv')
+const toCSV = require('csv-stringify')
 const auth = require('./auth');
 const { render, html, login }  = require('./render');
 const api = require('./api');
@@ -129,8 +129,20 @@ app.get('/csv', async (req, res, next) => {
       )
     );
 
+    const now = new Date;
+    res.set({
+      'Content-Disposition': `attachment; filename=phthiraptera-export-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}.csv`
+    });
     res.type('text/csv; charset=utf-8; headers=present');
-    res.send(toCSV([colPaths, ...rows], ';'));
+    const records = await new Promise((resolve, reject) => toCSV([colPaths, ...rows], { delimiter: ';' }, (err, res) => {
+      if(err) {
+        return reject(err);
+      }
+
+      resolve(res);
+    }));
+
+    res.send(records);
   } catch(e) {
     next(e);
   }
