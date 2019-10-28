@@ -131,7 +131,7 @@ app.get('/csv', async (req, res, next) => {
 
     const now = new Date;
     res.set({
-      'Content-Disposition': `attachment; filename=phthiraptera-export-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}.csv`
+      'Content-Disposition': `attachment; filename=phthiraptera-export-${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.csv`
     });
     res.type('text/csv; charset=utf-8; headers=present');
     const records = await new Promise((resolve, reject) => toCSV([colPaths, ...rows], { delimiter: ';' }, (err, res) => {
