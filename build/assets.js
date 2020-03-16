@@ -12,7 +12,7 @@ const run = async () => {
       minify: false
     })
 
-    await bundler.bundle();
+    const done = bundler.bundle();
 
     if(isDevMode) {
       await new Promise(res => {
@@ -21,6 +21,8 @@ const run = async () => {
           res();
         });
       });
+    } else {
+      await done;
     }
   }
 }

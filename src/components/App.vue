@@ -1,6 +1,6 @@
 <template>
   <AppWrapper>
-    <Transcription class="App__transcription" :records="records" :error="error" />
+    <Transcription class="App__transcription" :records="records" :error="error"></Transcription>
     <div class="App__progress">
       <div class="App__progress-label">{{ records.completed }}/{{ records.total }}</div>
       <progress :max="records.total" :value="records.completed"></progress>

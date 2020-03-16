@@ -7,7 +7,7 @@ if (!isDevMode) {
 const start = async () => {
   if (isDevMode) {
     const { buildAssets, runMigrations } = require('./build');
-    buildAssets();
+    await buildAssets();
     await require('./dev/docker')();
     await runMigrations();
   }

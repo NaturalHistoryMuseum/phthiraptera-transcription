@@ -149,7 +149,7 @@
 
 <script>
 // TODO: Import these from form-fields.js and figure out why parcel doesn't want to build them
-const getJson = file => fetch(file).then(res => res.json());
+const getJson = file => fetch(file).then(async res => [...new Set(await res.json())]);
 
 const getCountries = () => getJson('./countries.json');
 const getHosts = () => getJson('./hosts.json');

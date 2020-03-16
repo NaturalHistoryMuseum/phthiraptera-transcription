@@ -8,7 +8,7 @@ const start = async () => {
     return;
   }
 
-  const proc = spawn('docker', ['run','--rm','-P','--publish', '127.0.0.1:5432:5432', '-v', 'data:/var/lib/postgresql/data','postgres'])
+  const proc = spawn('docker', ['run','--rm','-e', 'POSTGRES_HOST_AUTH_METHOD=trust', '-P','--publish', '127.0.0.1:5432:5432', '-v', 'data:/var/lib/postgresql/data','postgres'])
   return new Promise((resolve, reject) => {
     // stderr => log messages; already setup
     proc.stderr.on('data', v => {
@@ -16,6 +16,11 @@ const start = async () => {
 
       if(v.indexOf('ready to accept connections') >= 0) {
         resolve();
+      }
+
+      if(v.indexOf('Error:') >= 0) {
+        proc.kill(0);
+        reject(v);
       }
     })
 
