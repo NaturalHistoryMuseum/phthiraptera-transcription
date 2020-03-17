@@ -26,6 +26,7 @@ html, body {
   height: 100%;
   font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
   font-size: 18px;
+  overflow: hidden;
 }
 
 .AppWrapper {

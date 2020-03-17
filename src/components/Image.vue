@@ -1,146 +1,133 @@
 <template>
-  <div class="Image">
-    <div class="Image__controls">
-      <button v-if="!error" @click="rotateBy(-1)">↶</button>
-      <button v-if="!error" @click="rotateBy(1)">↷</button>
-      <button v-if="!error" @click="zoomBy(-1)">-</button>
-      <button v-if="!error" @click="zoomBy(1)">+</button>
-      {{ image && loading ? 'Loading...' : '' }}
-      {{ error || '' }}
-    </div>
-    <canvas v-if="image"
-            ref="canvas"
-            class="Image__canvas"
-            :width="dims"
-            :height="dims"
-            @mousemove="mousePan"
-            @dblclick="mouseZoom"></canvas>
-    <img v-else ref="image" class="Image__canvas" :src="this.src" />
-  </div>
+  <img
+    :class="{
+      Image: true,
+      'Image--loading': loading,
+      'Image--error': error
+    }"
+    :src="src"
+    ref="image"
+    :alt="error || ''"
+    v-on="$listeners"
+    @load="loading = false"
+    @error="error = 'The image could not be loaded, there may be network or infrastructure issues.'"
+    @dblclick="rotate($event.shiftKey ? -1 : 1)"
+    @wheel="zoomWithWheel"
+    :style="{ transform }" />
 </template>
 
 <script>
 export default {
   data() {
     return {
-      rotate: 0,
-      zoom: 0,
-      origin: 0,
       loading: true,
-      image: null,
       error: null,
-      height: 0,
-      pan: { x: 0, y: 0 }
+      scale: 1,
+      x: 0,
+      y: 0,
+      turns: 0
     }
   },
-  props: ['assetId', 'width'],
+  props: ['assetId'],
   computed: {
+    /**
+     * Get the source URL of the asset
+     */
     src() {
       return `http://www.nhm.ac.uk/services/media-store/asset/${this.assetId}/contents/preview`
     },
-    ctx() {
-      const canvas = this.$refs.canvas;
-      return canvas && canvas.getContext('2d');
-    },
-    dims() {
-      return Math.max(this.width, this.height);
+    /**
+     * Get the css transformation for this image
+     */
+    transform(){
+      // We add rotate onto the end, as it's not provided by panzoom
+      return `scale(${this.scale}) translate(${this.x}px, ${this.y}px) rotate(${this.turns/4}turn)`;
     }
   },
   methods: {
-    rotateBy(d) {
-      while (d < 0) {
-        d += 4;
-      }
-      this.rotate = (this.rotate + d) % 4;
-      this.pan = { x: 0, y: 0 };
+    /**
+     * Reset the transformations to default
+     */
+    reset() {
+      this.panzoom.reset();
+      this.turns = 0;
     },
-    mousePan(event){
-      this.pan = {
-        x: event.offsetX - this.width / 2,
-        y: event.offsetY
-      };
+    /**
+     * Rotate the image `count/4` turns clockwise
+     */
+    rotate(count = 1){
+      this.turns += count;
     },
-    zoomBy(steps){
-      this.zoom = Math.max(this.zoom + steps, 0);
+    /**
+     * Zoom the image in by `n` steps
+     */
+    zoom(n = 1){
+      // A whole step is a bit too big so scale it down
+      this.panzoom.zoomIn({ step: 0.3 * n });
     },
-    mouseZoom(event) {
-      this.zoomBy(event.shiftKey ? -1 : 1);
-    },
+    /**
+     * Set the loading indicator and clear the error
+     */
     loadImage() {
       this.loading = true;
       this.error = null;
-      const image = this.$refs.image || new Image;
-      this.image = image;
-      image.src = this.src;
-      image.onload = () => {
-        this.loading = false;
-        this.draw();
-      }
-      image.onerror = () => {
-        this.loading = false;
-        this.error = 'Could not load the image, please try again later.';
-      }
     },
-    draw() {
-      const canvas = this.$refs.canvas;
-      const ctx = this.ctx;
-      const image = this.image;
-      const imageSize = Math.max(image.width, image.height);
-      const canvasSize = canvas.width;
-      const scale = canvasSize / imageSize;
-      const zoomFactor = Math.pow(1.5, this.zoom);
-      const w = scale * image.width * zoomFactor;
-      const h = scale * image.height * zoomFactor;
-      const rotations = this.rotate;
-      const θ = rotations * Math.PI / 2;
+    /**
+     * Zoom in/out based on a wheel event
+     */
+    zoomWithWheel(event) {
+      const image = event.target;
 
-      this.height = scale * (rotations % 2 ? image.width : image.height);
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      ctx.save();
-      ctx.translate(this.pan.x * (1 - zoomFactor), this.pan.y * (1 - zoomFactor));
-      ctx.rotate(θ);
-
-      const xCentre = (canvas.width - w)/2;
-      const yCentre = (canvas.width - h)/2;
-
-      switch (rotations) {
-        case 0:
-          ctx.translate(xCentre, 0);
-          break;
-        case 1:
-          ctx.translate(0, -(yCentre + h));
-          break;
-        case 2:
-          ctx.translate(-(xCentre +  w), -h);
-          break;
-        case 3:
-          ctx.translate(-w, yCentre);
-          break;
+      // Panzoom doesn't handle images in grids correctly,
+      // it doesn't check their offsets so the zoom focal
+      // point is wrong. We need to wrap the event in a proxy
+      // so we can assign the correct clientX/Y and also
+      // let it call event.preventDefault.
+      const handler = {
+        get(obj, prop){
+          switch(prop){
+            case 'clientY':
+              return obj.clientY - image.y;
+            case 'clientX':
+              return obj.clientX - image.x;
+            case 'preventDefault':
+              return () => obj.preventDefault()
+            default:
+              return obj[prop];
+          }
+        }
       }
 
-      ctx.drawImage(image, 0, 0,  w, h);
-      ctx.restore();
+      const e = new Proxy(event, handler);
+
+      this.panzoom.zoomWithWheel(e);
     }
   },
-  mounted() {
-    this.loadImage();
-  },
-  updated() {
-    this.draw();
+  async mounted() {
+    // Get the panzoom (use async import or this component throws on SSR)
+    const Panzoom = await import('@panzoom/panzoom');
+
+    // Set up the panzoom tool
+    const panzoom = new Panzoom(this.$refs.image, {
+      setTransform: (elem, { scale, x, y }) => {
+        // Instead of directly setting the values on the element,
+        // save them to the VM so we can integrate with Vue better.
+        this.x = x;
+        this.y = y;
+        this.scale = scale;
+      },
+      // No max scale
+      maxScale: Infinity
+    });
+    // Reference the panzoom controller so we can use this later.
+    // This object should last the lifetime of the component so it doesn't
+    // have to be reactive.
+    this.panzoom = panzoom;
   },
   watch: {
-    rotate(val) {
-      this.draw();
-    },
-    zoom() {
-      this.draw();
-    },
-    pan() {
-      this.draw();
-    },
     assetId() {
+      // When the assetId changes the new image will start loading,
+      // so enable the loading indicator.
       this.loadImage();
     }
   }
@@ -149,14 +136,22 @@ export default {
 
 <style>
 .Image {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: wrap;
-  align-content: flex-start;
+  /* Override panzoom's transition style for a nicer experience  */
+  transition: transform 0.1s ease 0s !important;
 }
 
-.Image__controls {
-  position: sticky;
-  top: 0;
+.Image--loading {
+  background: url('./ajax-loader.gif') center no-repeat;
+  min-height: 50px;
+  min-width: 50px;
+}
+
+.Image--error {
+  background: url('./alert-triangle.svg') center no-repeat;
+  min-height: 100px;
+  min-width: 50px;
+
+  /* Style the alt-text (the error message) */
+  font-weight: bold;
 }
 </style>

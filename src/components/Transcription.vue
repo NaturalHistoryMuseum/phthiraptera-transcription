@@ -1,12 +1,30 @@
 <template>
   <div class="Transcription">
     <template v-if="records">
-      <div ref="images" class="Transcription__wrapper">
-        <div class="Transcription__images" >
-          <TImage v-for="record in records.assets" :assetId="record.asset_id" :key="record.asset_id" :width="width" />
-        </div>
+      <div class="Transcription__controls">
+        <span v-if="multiple">Slide #{{ selected+1 }}</span>
+        <button @click="rotate(-1)">↶</button>
+        <button @click="rotate(1)">↷</button>
+        <button @click="zoom(-1)">-</button>
+        <button @click="zoom(1)">+</button>
+        <button @click="resetImages">{{ multiple ? 'Reset all' : 'Reset' }}</button>
+        <details class="Transcription__info">
+          <summary>Mouse controls</summary>
+          Pan by dragging, zoom with the scroll wheel, rotate with double-click ( + shift for opposite direction).
+        </details>
       </div>
-      <Form :token="records.token" :error="error" :scientificName="records.scientificName"/>
+      <div class="Transcription__images" :style="gridStyle">
+        <TImage
+          ref="images"
+          v-for="asset, ix in records.assets"
+          :key="asset.asset_id"
+          :assetId="asset.asset_id"
+          @focus="selected = ix"
+          @click="$event.target.focus()"
+          :class="imgClass(ix)"
+          :tabindex="tabindex"></TImage>
+      </div>
+      <Form class="Transcription__form" :token="records.token" :error="error" :scientificName="records.scientificName"/>
     </template>
     <div v-else class="Transcription__finished">
       <h2>All records have been processed</h2>
@@ -16,7 +34,6 @@
 </template>
 
 <script>
-import ResizeObserver from 'resize-observer-polyfill';
 import Form from './Form.vue';
 import TImage from './Image.vue';
 
@@ -27,46 +44,82 @@ export default {
   },
   data() {
     return {
-      imageSetWidth: 0,
-      imageSetHeight: 0
+      selected: 0
     }
   },
   props: ['records', 'error'],
   computed: {
-    width() {
-      const n = this.records.assets.length;
-      const h = this.imageSetHeight;
-      const w = this.imageSetWidth;
-
-      let hyp = Infinity;
-      let width, height;
-
-      // Find the different permutations of grids n*1 => 1*n.
-      for(let x = n; x > 0; x--) {
-        // Find cell width/height for grid of `x` cells wide by `⌈x/n⌉` cells high.
-        const imgWidth_ = Math.floor(w / x);
-        const imgHeight_ = Math.floor(h / Math.ceil(n/x));
-        const hyp_ = Math.hypot(imgWidth_, imgHeight_);
-
-        // Grid cells with smaller hypotenuses are more
-        // space-efficient for square contents.
-        if (hyp_ < hyp) {
-          [hyp, width, height] = [hyp_, imgWidth_, imgHeight_]
-        }
+    /**
+     * Get the grid size style for the current number of assets
+     */
+    gridStyle() {
+      if(!this.multiple) {
+        return null;
       }
 
-      return width;
+      const n = this.records.assets.length;
+      const rows = Math.floor(Math.sqrt(n))
+      const cols = Math.ceil(n/rows);
+
+      // Set the number of rows and columns based on number of records
+      return {
+        'grid-template-rows': `repeat(${rows}, 1fr)`,
+        'grid-template-columns': `repeat(${cols}, 1fr)`
+      };
+    },
+    /**
+     * True if there are multiple images
+     */
+    multiple() {
+      return this.records.assets.length > 1;
+    },
+    /**
+     * Set the tab index if there are multiple images
+     */
+    tabindex() {
+      return this.multiple ? 0 : null;
+    },
+    /**
+     * Get actual the selected index
+     */
+    selectedIndex(){
+      // Bound latent selected index by actual number of assets
+      return Math.min(this.selected, this.records.assets.length-1);
     }
   },
-  mounted() {
-    const resizeObserver = new ResizeObserver(() => {
-      this.imageSetWidth = this.$refs.images.clientWidth - 5;
-      this.imageSetHeight = this.$refs.images.clientHeight - 5;
-    });
-    resizeObserver.observe(this.$el);
-    // NB: As of 2018-06-05 the spec doesn't define whether resizeObserver is
-    // garbage collected when $el is removed from DOM. Current Chrome behaviour
-    // is that it does. If this changes, use unobserve/disconnect on unmount.
+  methods: {
+    /**
+     * Reset the position of all images
+     */
+    resetImages(){
+      for(let image of this.$refs.images) {
+        image.reset();
+      }
+    },
+    /*
+     * Get the class(es) for the `ix`th image
+     */
+    imgClass(ix) {
+      const selected = this.multiple && this.selectedIndex == ix;
+
+      return {
+        'Transcription__image': true,
+        'Transcription__image--focusable': this.multiple,
+        'Transcription__image--selected': selected
+      }
+    },
+    /**
+     * Rotate the selected image by n quarter-turns
+     */
+    rotate(n){
+      this.$refs.images[this.selectedIndex].rotate(n);
+    },
+    /**
+     * Zoom the selected image by n quarter-turns
+     */
+    zoom(n){
+      this.$refs.images[this.selectedIndex].zoom(n);
+    }
   }
 }
 </script>
@@ -74,26 +127,60 @@ export default {
 <style>
 .Transcription {
   min-height: 0;
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "info form"
+    "imgs form";
 }
 
-.Transcription > * {
-  flex: 1 1 50%;
+.Transcription__controls {
+  display: flex;
+  align-items: center;
+}
+
+.Transcription__controls > * {
+  margin: 2px;
+  flex-shrink: 0;
+}
+
+.Transcription__info {
+  font-size: smaller;
+  flex-shrink: 1;
+  margin-left: 20px;
 }
 
 .Transcription__images {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  align-items: center;
+  justify-items: center;
 }
 
-.Transcription__wrapper {
-  overflow: auto;
+.Transcription__images > * {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.Transcription__image--selected {
+  outline: 5px solid white;
+  box-shadow: 0 0 5px 7px #66F;
+  z-index: 1;
+}
+
+.Transcription__image--focusable:focus {
+  box-shadow: 0 0 5px 7px #33F;
 }
 
 .Transcription__finished {
   max-width: 500px;
   padding: 0 20px;
   margin: auto;
+}
+
+.Transcription__form {
+  grid-area: form;
 }
 
 @media(orientation: portrait) {

@@ -17,6 +17,7 @@
     "node": "10.0.0"
   },
   "dependencies": {
+    "@panzoom/panzoom": "^4.0.3",
     "axios": "^0.18.1",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.18.3",
@@ -32,7 +33,6 @@
     "pg-connection-string": "^2.0.0",
     "postgres-migrations": "neonpaul/postgres-migrations",
     "recursive-iterator": "^3.3.0",
-    "resize-observer-polyfill": "^1.5.0",
     "sql-tag": "^1.0.1",
     "vue": "^2.6.11",
     "vue-hot-reload-api": "^2.3.0",
