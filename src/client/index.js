@@ -26,7 +26,14 @@ const app = new Vue({
   }
 })
 
-eventBus.$on('transcribe', async payload => {
+// Listen for the form to fire transcribe event
+eventBus.$on('transcribe', async ({ payload, target }) => {
+  const formData = Array.from(new FormData(target).entries());
+
+  // Save the form data in the history API so we can restore it later
+  history.replaceState({ formData, records: app.records }, '');
+
+  // Save the data to database
   const res = await window.fetch('/api', {
     credentials: 'include',
     method: 'POST',
@@ -44,10 +51,20 @@ eventBus.$on('transcribe', async payload => {
     return;
   }
 
+  // Get the next set of records
   const records = await(await window.fetch('/api', { credentials: 'include' })).json();
+
+  // Push a new history state so the user can go back if needed
+  history.pushState({ records }, '');
 
   app.records = records;
   app.error = null;
-})
+});
+
+// Restore the app state on history navigate
+window.onpopstate = (event) => {
+  app.records = event.state.records;
+  app.error = null;
+}
 
 app.$mount('#app')

@@ -189,6 +189,62 @@ export default {
     getCountries().then(countries => this.countries = countries);
     getHosts().then(hosts => this.hosts = hosts);
     window.addEventListener('unload', this.release);
+
+    // Check for back/forward navigation and restore the form
+    window.addEventListener('popstate', event => {
+      if(!event.state || !event.state.formData) {
+        return;
+      }
+
+      const formData = new FormData(event.state.formData);
+
+      // Make sure we have enough collector fields
+      this.collectorCount = Math.max(
+        formData.getAll('collector_initials[]').length,
+        formData.getAll('collector_surnames[]').length
+      );
+
+      // Wait until Vue has rendered stuff
+      this.$nextTick(() => {
+        // Dedupe field keys
+        const formKeys = new Set(formData.keys());
+
+        for(const key of formKeys) {
+          // Get element or nodeList for this key and associated values
+          const item = this.$refs.form.elements.namedItem(key);
+          const elements = item instanceof RadioNodeList ? item : [item];
+          const values = formData.getAll(key);
+
+          // Add a label so we can break the `for` from within `switch`
+          nodeList:
+          for(const ix of elements.keys()) {
+            const element = elements[ix];
+
+            if(!element) {
+              continue;
+            }
+
+            switch(element.type) {
+              case 'radio':
+                // Only one radio should be checked, if we find it we can skip the others
+                if(element.value === values[0]) {
+                  element.checked = true;
+                  break nodeList;
+                }
+                break
+              case 'checkbox':
+                // Checkboxes have to set checked to true or false
+                element.checked = values.includes(element.value);
+                break;
+              default:
+                // Other fiels accept value setting directly
+                element.value = values[ix];
+                break;
+            }
+          }
+        }
+      });
+    });
   },
   beforeDestroy() {
     window.removeEventListener('unload', this.release);
@@ -196,7 +252,6 @@ export default {
   watch: {
     token() {
       this.$refs.form.reset();
-      this.collectorCount = 1;
     }
   },
   methods: {
@@ -211,7 +266,8 @@ export default {
     },
     transcribe(event){
       const payload = {};
-      for (const el of event.target.elements) {
+      const target = event.target;
+      for (const el of target.elements) {
         if(!el.name || ((el.type === "checkbox" || el.type === "radio") && !el.checked)) {
           continue;
         }
@@ -226,8 +282,11 @@ export default {
           }
         }
       }
-      this.eventBus.$emit('transcribe', payload)
+
+      // Fire the transcribe event up the event bus so we can post to the API
+      this.eventBus.$emit('transcribe', { payload, target })
       event.preventDefault();
+      this.collectorCount = 1;
     }
   }
 }

@@ -45,12 +45,12 @@ module.exports = {
   saveTranscription: connect(async (client, data) => {
     const { barcode, exp } = jwt.verify(data.token, JWT_KEY, { ignoreExpiration: true });
 
-    if (exp < Date.now()) {
-      if((await client.query(sql`SELECT * FROM fields WHERE barcode=${barcode}`)).rowCount > 0) {
-        return;
-        //throw new Error('This slide was transcribed while you were filling out the form. Please refresh and try another.');
-      }
-    }
+    // if (exp < Date.now()) {
+    //   if((await client.query(sql`SELECT * FROM fields WHERE barcode=${barcode}`)).rowCount > 0) {
+    //     return;
+    //     //throw new Error('This slide was transcribed while you were filling out the form. Please refresh and try another.');
+    //   }
+    // }
 
     const validate = validator();
 
@@ -76,6 +76,9 @@ module.exports = {
     await validate.throw();
 
     const stage = data.stage || [];
+
+    // Remove any previously entered fields
+    await client.query(sql`DELETE FROM fields WHERE barcode=${barcode}`);
 
     return client.query(sql`
       INSERT INTO fields (
