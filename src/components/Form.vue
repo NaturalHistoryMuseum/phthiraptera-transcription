@@ -3,11 +3,12 @@
     <h2 v-if="scientificName">{{ scientificName }}</h2>
     <div class="Form__warning" v-else>Could not get scientific name - is data portal down?</div>
     <div class="Form__wrapper">
+      <Dialog></Dialog>
       <input type="hidden" name="token" :value="token">
       <fieldset class="Form__fieldset">
         <legend>Host</legend>
         <label class="Form__label">
-          Host (type and select from list - species, Genus)
+          Host <Tooltip>To search, type <em>species, Genus</em> and select from the list - e.g. <em>bufo, Bufo</em>.</Tooltip>
           <input name="host" list="hosts" type="text" class="Form__input" @blur="checkHost">
           <datalist id="hosts">
             <option v-for="host in hosts" :key="host">{{ host }}</option>
@@ -17,28 +18,25 @@
           Host (if not in list)
           <input name="host_other" class="Form__input">
         </label>
-        <div class="Form__radioset">
-          <label class="Form__checkbutton">
-            <input type="radio" name="host_type" value="No host">
-            No host
-          </label>
-          <label class="Form__checkbutton">
-            <input type="radio" name="host_type" value="" checked>
-            Host present
-          </label>
-          <label v-for="hostType in hostTypes.slice(1)" :key="hostType" class="Form__checkbutton">
-            <input type="radio" name="host_type" :value="hostType">
-            Host present: {{ hostType }}
-          </label>
-        </div>
+        <label class="Form__label">
+          Host type
+          <select name="host_type" class="Form__input">
+            <option value="No host">No host</option>
+            <optgroup label="Host present">
+              <option value="Host present" selected>Host present</option>
+              <option v-for="hostType in hostTypes.slice(1)" :key="hostType" :value="hostType">{{ hostType }}</option>
+            </optgroup>
+          </select>
+        </label>
       </fieldset>
       <fieldset class="Form__fieldset">
         <legend>Locality</legend>
         <div class="Form__radioset">
-          <label v-for="l in localities" :key="l" class="Form__checkbutton">
+          <label v-for="(label, l) in localities" :key="l" class="Form__checkbutton">
             <input type="radio" name="locality" :value="l" :checked="l==='Real'" v-once>
-            {{ l }}
+            {{ label }}
           </label>
+          <Tooltip>Examples of artificial localities include museum, zoo, bred, lab, etc.</Tooltip>
         </div>
         <label class="Form__label">
           Country
@@ -69,12 +67,12 @@
       <fieldset class="Form__fieldset">
         <legend>Collection Date</legend>
         <label class="Form__label" for="collection_day">
-          Date (dd-mm-yyyy)
+          Date <Tooltip>Formatted as dd-mm-yyyy</Tooltip>
         </label>
         <div class="Form__input">
-          <input type="number" min="1" max="31" name="collection_day" id="collection_day">
-          <input type="number" min="1" max="12" name="collection_month">
-          <input type="number" name="collection_year">
+          <input type="number" placeholder="dd" min="1" max="31" name="collection_day" id="collection_day">
+          <input type="number" placeholder="mm" min="1" max="12" name="collection_month">
+          <input type="number" placeholder="yyyy" name="collection_year">
         </div>
         <div class="Form__radioset">
           <label class="Form__checkbutton">
@@ -86,7 +84,7 @@
       <fieldset class="Form__fieldset">
         <legend>Registration Number</legend>
         <label class="Form__label">
-          BM number (e.g. <em>BM 1980-1</em>)
+          BM number <Tooltip>e.g. <em>BM 1980-1</em></Tooltip>
           <input name="registration_number" class="Form__input">
         </label>
       </fieldset>
@@ -154,7 +152,12 @@ const getJson = file => fetch(file).then(async res => [...new Set(await res.json
 const getCountries = () => getJson('./countries.json');
 const getHosts = () => getJson('./hosts.json');
 
-const localities = ['Real', 'Unreadable', 'Artificial (e.g. museum, zoo, bred, lab etc)'];
+const localities = {
+  Real: 'Real',
+  Unreadable: 'Unreadable',
+  'Artificial (e.g. museum, zoo, bred, lab etc)': 'Artificial'
+};
+
 const typeStatuses = [
   'Allotype',
   'Holotype',
@@ -173,7 +176,13 @@ const hostTypes = [
   'Other (nest, clothing etc)'
 ]
 
+import { Dialog, Tooltip } from './tooltips';
+
 export default {
+  components: {
+    Tooltip,
+    Dialog
+  },
   props: ['token', 'error', 'scientificName'],
   inject: ['eventBus'],
   data: () => ({
@@ -302,6 +311,18 @@ export default {
   flex-direction: column;
 }
 
+.Form legend {
+  float: left;
+  width: 100%;
+  color: #99F;
+  margin: 0 0 0.5em;
+  padding: 0;
+}
+
+.Form legend + * {
+  clear: left;
+}
+
 .Form__footer {
   padding: 10px;
   position: sticky;
@@ -364,6 +385,7 @@ export default {
   flex-wrap: wrap;
   margin: -0.25em;
   margin-bottom: 0.5em;
+  align-items: center;
 }
 
 .Form__checkbutton {
