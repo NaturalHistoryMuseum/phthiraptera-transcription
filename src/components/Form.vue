@@ -193,10 +193,13 @@ export default {
     // Check for back/forward navigation and restore the form
     window.addEventListener('popstate', event => {
       if(!event.state || !event.state.formData) {
+        this.collectorCount = 1;
         return;
       }
 
-      const formData = new FormData(event.state.formData);
+      // FormData can't be constructed from entries array,
+      // so use URLSearchParams as it has roughly the same interface.
+      const formData = new URLSearchParams(event.state.formData);
 
       // Make sure we have enough collector fields
       this.collectorCount = Math.max(
