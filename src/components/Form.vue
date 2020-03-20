@@ -23,7 +23,7 @@
           <select name="host_type" class="Form__input">
             <option value="No host">No host</option>
             <optgroup label="Host present">
-              <option value="Host present" selected>Host present</option>
+              <option value="" selected>Host present</option>
               <option v-for="hostType in hostTypes.slice(1)" :key="hostType" :value="hostType">{{ hostType }}</option>
             </optgroup>
           </select>
@@ -62,7 +62,7 @@
             <input name="collector_surnames[]" class="Form__input">
           </label>
         </div>
-        <button @click="collectorCount++" type="button">+</button>
+        <button @click="addCollector" type="button">+</button>
       </fieldset>
       <fieldset class="Form__fieldset">
         <legend>Collection Date</legend>
@@ -264,6 +264,7 @@ export default {
   watch: {
     token() {
       this.$refs.form.reset();
+      this.$refs.form.host.focus();
     }
   },
   methods: {
@@ -299,6 +300,16 @@ export default {
       this.eventBus.$emit('transcribe', { payload, target })
       event.preventDefault();
       this.collectorCount = 1;
+    },
+    /**
+     * Add another set of collector fields and focus the last one
+     */
+    addCollector(){
+      this.collectorCount++;
+      this.$nextTick(() => {
+        const ciCol = this.$refs.form.elements.namedItem('collector_initials[]');
+        ciCol[ciCol.length-1].focus();
+      });
     }
   }
 }
