@@ -62,14 +62,14 @@
             <input name="collector_surnames[]" class="Form__input">
           </label>
         </div>
-        <button @click="addCollector" type="button">+</button>
+        <button @click="addCollector" type="button" class="Form__button">+</button>
       </fieldset>
       <fieldset class="Form__fieldset">
         <legend>Collection Date</legend>
         <label class="Form__label" for="collection_day">
           Date <Tooltip>Formatted as dd-mm-yyyy</Tooltip>
         </label>
-        <div class="Form__input">
+        <div class="Form__input-group">
           <input type="number" placeholder="dd" min="1" max="31" name="collection_day" id="collection_day">
           <input type="number" placeholder="mm" min="1" max="12" name="collection_month">
           <input type="number" placeholder="yyyy" name="collection_year">
@@ -135,7 +135,7 @@
         <label class="Form__label Form__control">Your email (required)
           <input type="email" name="user_email" v-model="userEmail" class="Form__input" required>
         </label>
-        <button class="Form__submit Form__control Form__input">Submit</button>
+        <button class="Form__submit Form__control Form__button">Submit</button>
       </div>
       <details class="Form__data-protection">
         <summary>Data Protection</summary>
@@ -325,7 +325,7 @@ export default {
 .Form legend {
   float: left;
   width: 100%;
-  color: #99F;
+  color: #78F;
   margin: 0 0 0.5em;
   padding: 0;
 }
@@ -366,6 +366,7 @@ export default {
   /* Make max height ridiculously large
      so columns never overflow horizontally */
   columns: 2 250px;
+  column-gap: 2px;
   max-height: 1000vh;
   flex: 1;
   padding-bottom: 100px;
@@ -389,6 +390,8 @@ export default {
   page-break-inside: avoid; /* Firefox */
   break-inside: avoid;
   margin-bottom: 5px;
+  background: #EEF;
+  border-color: #CCF;
 }
 
 .Form__radioset {
@@ -408,20 +411,39 @@ export default {
   display: inline-flex;
 }
 
+.Form__button:hover,
 .Form__checkbutton:hover {
   box-shadow: #333 1px 1px;
   transform: translate(0, -1px);
 }
 
+.Form__button:active,
 .Form__checkbutton:active {
   box-shadow: #333 1px 1px inset;
   transform: translate(0, 1px);
 }
 
-.Form__input {
+.Form__input,
+.Form__input-group {
   margin: 3px 0 10px;
-  padding: 5px;
   width: 100%;
+}
+
+.Form__input,
+.Form__input-group input {
+  background: white;
+}
+
+.Form__input,
+.Form__input-group input,
+.Form__button {
+  border: 1px solid #AAF;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.Form__button {
+  min-width: 3em;
 }
 
 .Form__error {
