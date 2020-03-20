@@ -5,7 +5,7 @@ const checkPort = () => isPortFree(5432).then(() => true, () => false);
 
 const start = async () => {
   if (!await checkPort()) {
-    return;
+    return 'Port is not free';
   }
 
   const proc = spawn('docker', ['run','--rm','-e', 'POSTGRES_HOST_AUTH_METHOD=trust', '-P','--publish', '127.0.0.1:5432:5432', '-v', 'data:/var/lib/postgresql/data','postgres'])
@@ -44,5 +44,8 @@ const start = async () => {
 module.exports = start;
 
 if(require.main === module) {
-  start();
+  start().then(
+    r => console.log('Done:', r),
+    e => console.error(e)
+  );
 }
