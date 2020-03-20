@@ -377,6 +377,7 @@ export default {
   -webkit-column-break-inside: avoid; /* Chrome, Safari, Opera */
   page-break-inside: avoid; /* Firefox */
   break-inside: avoid;
+  margin-bottom: 5px;
 }
 
 .Form__radioset {
