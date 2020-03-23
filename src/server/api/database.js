@@ -101,7 +101,8 @@ module.exports = {
         nymph,
         user_email,
         requires_verification,
-        notes
+        notes,
+        date
       )
       VALUES(
         ${barcode},
@@ -123,7 +124,8 @@ module.exports = {
         ${!!stage.includes('nymph(s)')},
         ${data.user_email},
         ${!!data.requires_verification},
-        ${data.notes}
+        ${data.notes},
+        NOW()
       );`)
   }),
   nextAsset: connect(async (client, opts = {}) => {
