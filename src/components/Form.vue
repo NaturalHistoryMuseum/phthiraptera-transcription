@@ -1,146 +1,148 @@
 <template>
   <form ref="form" class="Form" method="POST" @submit="transcribe">
-    <h2 v-if="scientificName">{{ scientificName }}</h2>
+    <Dialog></Dialog>
+    <h2 v-if="scientificName" class="Form__sciname">{{ scientificName }}</h2>
     <div class="Form__warning" v-else>Could not get scientific name - is data portal down?</div>
     <div class="Form__wrapper">
-      <Dialog></Dialog>
       <input type="hidden" name="token" :value="token">
-      <fieldset class="Form__fieldset">
-        <legend>Host</legend>
-        <label class="Form__label">
-          Host <Tooltip>To search, type <em>species, Genus</em> and select from the list - e.g. <em>bufo, Bufo</em>.</Tooltip>
-          <input name="host" list="hosts" type="text" class="Form__input" @blur="checkHost">
-          <datalist id="hosts">
-            <option v-for="host in hosts" :key="host">{{ host }}</option>
-          </datalist>
-        </label>
-        <label class="Form__label">
-          Host (if not in list)
-          <input name="host_other" class="Form__input">
-        </label>
-        <label class="Form__label">
-          Host type
-          <select name="host_type" class="Form__input">
-            <option value="No host">No host</option>
-            <optgroup label="Host present">
-              <option value="" selected>Host present</option>
-              <option v-for="hostType in hostTypes.slice(1)" :key="hostType" :value="hostType">{{ hostType }}</option>
-            </optgroup>
-          </select>
-        </label>
-      </fieldset>
-      <fieldset class="Form__fieldset">
-        <legend>Locality</legend>
-        <div class="Form__radioset">
-          <label v-for="(label, l) in localities" :key="l" class="Form__checkbutton">
-            <input type="radio" name="locality" :value="l" :checked="l==='Real'" v-once>
-            {{ label }}
+      <div class="Form__columns">
+        <fieldset class="Form__fieldset">
+          <legend>Host</legend>
+          <label class="Form__label">
+            Host <Tooltip>To search, type <em>species, Genus</em> and select from the list - e.g. <em>bufo, Bufo</em>.</Tooltip>
+            <input name="host" list="hosts" type="text" class="Form__input" @blur="checkHost">
+            <datalist id="hosts">
+              <option v-for="host in hosts" :key="host">{{ host }}</option>
+            </datalist>
           </label>
-          <Tooltip>Examples of artificial localities include museum, zoo, bred, lab, etc.</Tooltip>
-        </div>
-        <label class="Form__label">
-          Country
-          <select name="country" class="Form__input">
-            <option selected></option>
-            <option v-for="country in countries" :key="country">{{ country }}</option>
-          </select>
-        </label>
-        <label class="Form__label">
-          Precise locality
-          <input class="Form__input" name="precise_locality">
-        </label>
-      </fieldset>
-      <fieldset class="Form__fieldset">
-        <legend>Collector(s)</legend>
-        <div v-for="n in collectorCount" :key="n" class="Form__row">
-          <label class="Form__label Form__initials-col">
-            Collector initials
-            <input name="collector_initials[]" class="Form__input">
+          <label class="Form__label">
+            Host (if not in list)
+            <input name="host_other" class="Form__input">
           </label>
-          <label class="Form__label Form__surname-col">
-            Collector surname
-            <input name="collector_surnames[]" class="Form__input">
+          <label class="Form__label">
+            Host type
+            <select name="host_type" class="Form__input">
+              <option value="No host">No host</option>
+              <optgroup label="Host present">
+                <option value="" selected>Host present</option>
+                <option v-for="hostType in hostTypes.slice(1)" :key="hostType" :value="hostType">{{ hostType }}</option>
+              </optgroup>
+            </select>
           </label>
-        </div>
-        <button @click="addCollector" type="button" class="Form__button">+</button>
-      </fieldset>
-      <fieldset class="Form__fieldset">
-        <legend>Collection Date</legend>
-        <label class="Form__label" for="collection_day">
-          Date <Tooltip>Formatted as dd-mm-yyyy</Tooltip>
-        </label>
-        <div class="Form__input-group">
-          <input type="number" placeholder="dd" min="1" max="31" name="collection_day" id="collection_day">
-          <input type="number" placeholder="mm" min="1" max="12" name="collection_month">
-          <input type="number" placeholder="yyyy" name="collection_year">
-        </div>
-        <div class="Form__radioset">
+        </fieldset>
+        <fieldset class="Form__fieldset">
+          <legend>Locality</legend>
+          <div class="Form__radioset">
+            <label v-for="(label, l) in localities" :key="l" class="Form__checkbutton">
+              <input type="radio" name="locality" :value="l" :checked="l==='Real'" v-once>
+              {{ label }}
+            </label>
+            <Tooltip>Examples of artificial localities include museum, zoo, bred, lab, etc.</Tooltip>
+          </div>
+          <label class="Form__label">
+            Country
+            <select name="country" class="Form__input">
+              <option selected></option>
+              <option v-for="country in countries" :key="country">{{ country }}</option>
+            </select>
+          </label>
+          <label class="Form__label">
+            Precise locality
+            <input class="Form__input" name="precise_locality">
+          </label>
+        </fieldset>
+        <fieldset class="Form__fieldset">
+          <legend>Collector(s)</legend>
+          <div v-for="n in collectorCount" :key="n" class="Form__row">
+            <label class="Form__label Form__initials-col">
+              Collector initials
+              <input name="collector_initials[]" class="Form__input">
+            </label>
+            <label class="Form__label Form__surname-col">
+              Collector surname
+              <input name="collector_surnames[]" class="Form__input">
+            </label>
+          </div>
+          <button @click="addCollector" type="button" class="Form__button">+</button>
+        </fieldset>
+        <fieldset class="Form__fieldset">
+          <legend>Collection Date</legend>
+          <label class="Form__label" for="collection_day">
+            Date <Tooltip>Formatted as dd-mm-yyyy</Tooltip>
+          </label>
+          <div class="Form__input-group">
+            <input type="number" placeholder="dd" min="1" max="31" name="collection_day" id="collection_day">
+            <input type="number" placeholder="mm" min="1" max="12" name="collection_month">
+            <input type="number" placeholder="yyyy" name="collection_year">
+          </div>
+          <div class="Form__radioset">
+            <label class="Form__checkbutton">
+              <input type="checkbox" name="collection_range" value="1">
+              Date range
+            </label>
+          </div>
+        </fieldset>
+        <fieldset class="Form__fieldset">
+          <legend>Registration Number</legend>
+          <label class="Form__label">
+            BM number <Tooltip>e.g. <em>BM 1980-1</em></Tooltip>
+            <input name="registration_number" class="Form__input">
+          </label>
+        </fieldset>
+        <fieldset class="Form__fieldset">
+          <legend>Type Status</legend>
+          <div class="Form__radioset">
+            <label v-for="status in typeStatuses" :key="status" class="Form__checkbutton">
+              <input type="checkbox" name="type_statuses[]" :value="status">{{ status }}
+            </label>
+          </div>
+        </fieldset>
+        <fieldset class="Form__fieldset">
+          <legend>Sex/Stage</legend>
+          <label class="Form__label">
+            Total number of specimens
+            <input name="total_count" type="number" class="Form__input">
+          </label>
+          <div class="Form__radioset">
+            <label v-for="stage in ['adult female(s)', 'adult male(s)', 'nymph(s)']" :key="stage" class="Form__checkbutton">
+              <input name="stage[]" type="checkbox" :value="stage">
+              {{ stage }}
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="Form__fieldset">
+          <legend>Other</legend>
           <label class="Form__checkbutton">
-            <input type="checkbox" name="collection_range" value="1">
-            Date range
+            <input type="checkbox" name="requires_verification">
+            Requires Verification
           </label>
-        </div>
-      </fieldset>
-      <fieldset class="Form__fieldset">
-        <legend>Registration Number</legend>
-        <label class="Form__label">
-          BM number <Tooltip>e.g. <em>BM 1980-1</em></Tooltip>
-          <input name="registration_number" class="Form__input">
-        </label>
-      </fieldset>
-      <fieldset class="Form__fieldset">
-        <legend>Type Status</legend>
-        <div class="Form__radioset">
-          <label v-for="status in typeStatuses" :key="status" class="Form__checkbutton">
-            <input type="checkbox" name="type_statuses[]" :value="status">{{ status }}
+          <label class="Form__label">
+            Explanation (if needed)
+            <textarea name="notes" maxlength="255" class="Form__input"></textarea>
           </label>
-        </div>
-      </fieldset>
-      <fieldset class="Form__fieldset">
-        <legend>Sex/Stage</legend>
-        <label class="Form__label">
-          Total number of specimens
-          <input name="total_count" type="number" class="Form__input">
-        </label>
-        <div class="Form__radioset">
-          <label v-for="stage in ['adult female(s)', 'adult male(s)', 'nymph(s)']" :key="stage" class="Form__checkbutton">
-            <input name="stage[]" type="checkbox" :value="stage">
-            {{ stage }}
-          </label>
-        </div>
-      </fieldset>
+        </fieldset>
 
-      <fieldset class="Form__fieldset">
-        <legend>Other</legend>
-        <label class="Form__checkbutton">
-          <input type="checkbox" name="requires_verification">
-          Requires Verification
-        </label>
-        <label class="Form__label">
-          Explanation (if needed)
-          <textarea name="notes" maxlength="255" class="Form__input"></textarea>
-        </label>
-      </fieldset>
-
-      <div class="Form__error" v-if="error" id="errors">
-        There were some errors in the form:
-        <ul>
-          <li v-for="e in error" :key="e">{{ e }}</li>
-        </ul>
+        <div class="Form__error" v-if="error" id="errors">
+          There were some errors in the form:
+          <ul>
+            <li v-for="e in error" :key="e">{{ e }}</li>
+          </ul>
+        </div>
       </div>
     </div>
 
     <div class="Form__footer">
       <div class="Form__controls">
-        <label class="Form__label Form__control">Your email (required)
-          <input type="email" name="user_email" v-model="userEmail" class="Form__input" required>
+        <label class="Form__label Form__control">Email:
+          <input type="email" name="user_email" v-model="userEmail" class="Form__email" required>
         </label>
-        <button class="Form__submit Form__control Form__button">Submit</button>
+        <Tooltip>
+          <b>Data Protection</b><br>
+          The Natural History Museum will use your personal data in accordance with data protection legislation to process your requests. For more information please read our <a href="http://www.nhm.ac.uk/about-us/privacy-notice.html">privacy notice</a>.
+        </Tooltip>
+        <button class="Form__submit Form__button">Submit</button>
       </div>
-      <details class="Form__data-protection">
-        <summary>Data Protection</summary>
-        The Natural History Museum will use your personal data in accordance with data protection legislation to process your requests. For more information please read our <a href="http://www.nhm.ac.uk/about-us/privacy-notice.html">privacy notice</a>.
-      </details>
     </div>
   </form>
 </template>
@@ -322,6 +324,10 @@ export default {
   flex-direction: column;
 }
 
+.Form__sciname {
+  margin-bottom: 5px;
+}
+
 .Form legend {
   float: left;
   width: 100%;
@@ -336,40 +342,31 @@ export default {
 
 .Form__footer {
   padding: 10px;
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  width: 100%;
   background: #EEE;
 }
 
 .Form__controls {
   display: flex;
-  justify-content: space-between;
-}
-
-.Form__data-protection {
-  font-size: 0.8em;
+  align-items: center;
 }
 
 .Form__control {
-  display: block;
-  line-height: 2;
-  flex: 0 1 49%;
+  display: flex;
+  align-items: center;
+  margin-right: 0.7em;
 }
 
-.Form__submit {
-  min-width: 25%;
-}
-
-.Form__wrapper {
+.Form__columns {
   /* Make max height ridiculously large
      so columns never overflow horizontally */
   columns: 2 250px;
   column-gap: 2px;
   max-height: 1000vh;
+}
+
+.Form__wrapper {
+  overflow-y: auto;
   flex: 1;
-  padding-bottom: 100px;
 }
 
 .Form__warning {
@@ -390,6 +387,7 @@ export default {
   page-break-inside: avoid; /* Firefox */
   break-inside: avoid;
   margin-bottom: 5px;
+  padding-bottom: 5px;
   background: #EEF;
   border-color: #CCF;
 }
@@ -444,6 +442,14 @@ export default {
 
 .Form__button {
   min-width: 3em;
+  background: #DDD;
+  margin-bottom: 10px;
+}
+
+.Form__submit {
+  min-width: 50%;
+  margin-left: auto;
+  margin-bottom: 0;
 }
 
 .Form__error {

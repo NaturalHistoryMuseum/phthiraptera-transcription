@@ -81,6 +81,7 @@ export default {
   font-size: 13px;
   border-radius: 4px;
   max-width: 300px;
+	z-index: 1;
 }
 
 .Dialog__arrow,
@@ -111,5 +112,9 @@ export default {
 
 .Dialog[data-popper-placement^='right'] > .Dialog__arrow {
   left: -4px;
+}
+
+.Dialog a:link, a:visited, a:active {
+	color: #FFCCFF;
 }
 </style>
