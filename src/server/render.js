@@ -2,12 +2,12 @@ const Vue = require('vue')
 
 const renderer = require('vue-server-renderer').createRenderer()
 
-module.exports.render = ({data}) => {
+module.exports.render = ({data, collections }) => {
   const App = require('../../dist/App.js').default;
 
   return renderer.renderToString(
     new Vue({
-      render: h => h(App, { props: { records: data } })
+      render: h => h(App, { props: { records: data, collections } })
     })
   )
 }

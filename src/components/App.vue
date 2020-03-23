@@ -1,6 +1,6 @@
 <template>
   <AppWrapper>
-    <Transcription class="App__transcription" :records="records" :error="error"></Transcription>
+    <Transcription class="App__transcription" :records="records" :error="error" :collections="collections"></Transcription>
     <div class="App__progress">
       <div class="App__progress-label">{{ records.completed }}/{{ records.total }}</div>
       <progress :max="records.total" :value="records.completed" class="App__progress-bar"></progress>
@@ -18,7 +18,7 @@ export default {
     Transcription
   },
   name: 'app',
-  props: ['records', 'error']
+  props: ['records', 'error', 'collections']
 }
 </script>
 

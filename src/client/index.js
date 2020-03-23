@@ -10,6 +10,7 @@ const app = new Vue({
   data() {
     return {
       records: window.__DATA__,
+      collections: window.__COLLECTIONS__,
       error: null
     }
   },
@@ -19,6 +20,7 @@ const app = new Vue({
       {
         props: {
           records: this.records,
+          collections: this.collections,
           error: this.error
         }
       }
@@ -56,6 +58,10 @@ eventBus.$on('transcribe', async ({ payload, target }) => {
 
   // Push a new history state so the user can go back if needed
   history.pushState({ records }, '');
+
+  if(payload.collection && !app.collections.includes(payload.collection)) {
+    app.collections.push(payload.collection);
+  }
 
   app.records = records;
   app.error = null;

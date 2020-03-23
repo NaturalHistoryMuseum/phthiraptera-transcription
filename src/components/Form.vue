@@ -64,6 +64,13 @@
             </label>
           </div>
           <button @click="addCollector" type="button" class="Form__button">+</button>
+          <label class="Form__label">
+            Institution or collection
+            <input name="collection" list="collections" class="Form__input">
+            <datalist id="collections">
+              <option v-for="c in collections" :key="c">{{ c }}</option>
+            </datalist>
+          </label>
         </fieldset>
         <fieldset class="Form__fieldset">
           <legend>Collection Date</legend>
@@ -185,7 +192,7 @@ export default {
     Tooltip,
     Dialog
   },
-  props: ['token', 'error', 'scientificName'],
+  props: ['token', 'error', 'scientificName', 'collections'],
   inject: ['eventBus'],
   data: () => ({
     collectorCount: 1,

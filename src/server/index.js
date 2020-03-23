@@ -5,7 +5,7 @@ const toCSV = require('csv-stringify')
 const auth = require('./auth');
 const { render, html, login }  = require('./render');
 const api = require('./api');
-const { nextAsset, saveTranscription, readData } = require('./api/database');
+const { nextAsset, saveTranscription, readData, getCollections } = require('./api/database');
 const RecursiveIterator = require('recursive-iterator');
 const { release } = require('./api/database');
 
@@ -53,15 +53,17 @@ app.post('/', async (req, res, next) => {
 app.get('/', async (req, res, next) => {
   try {
     const data = await nextAsset({ multiple: req.query.multiple, empty: req.query.empty });
+    const collections = await getCollections();
     res.send(html({
       title: 'Phthiraptera Transcriptions',
       head: `
         <link rel="stylesheet" href="/index.css" />
         <script>
           window.__DATA__ = ${JSON.stringify(data)};
+          window.__COLLECTIONS__ = ${JSON.stringify(collections)};
         </script>`,
       body: `
-        ${await render({ data })}
+        ${await render({ data, collections })}
         <script src="/index.js"></script>`
     }));
   } catch(e) {

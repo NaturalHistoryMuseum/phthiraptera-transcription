@@ -24,7 +24,7 @@
           :class="imgClass(ix)"
           :tabindex="tabindex"></TImage>
       </div>
-      <Form class="Transcription__form" :token="records.token" :error="error" :scientificName="records.scientificName"/>
+      <Form class="Transcription__form" :token="records.token" :error="error" :scientificName="records.scientificName" :collections="collections" />
     </template>
     <div v-else class="Transcription__finished">
       <h2>All records have been processed</h2>
@@ -47,7 +47,7 @@ export default {
       selected: 0
     }
   },
-  props: ['records', 'error'],
+  props: ['records', 'error', 'collections'],
   computed: {
     /**
      * Get the grid size style for the current number of assets

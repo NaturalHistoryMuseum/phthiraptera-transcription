@@ -93,6 +93,7 @@ module.exports = {
         collection_day,
         collection_range,
         collectors,
+        collection,
         type_statuses,
         registration_number,
         total_count,
@@ -116,6 +117,7 @@ module.exports = {
         ${data.collection_day},
         ${!!data.collection_range},
         ${JSON.stringify(collectors)},
+        ${data.collection},
         ${JSON.stringify((data.type_statuses || []).filter(Boolean))},
         ${data.registration_number},
         ${data.total_count || null},
@@ -194,6 +196,16 @@ module.exports = {
           ...r,
           is_free_text: !hosts.includes(r.host)
         }))
+  ),
+
+  /**
+   * Get a list of values previously entered into the collections field
+   */
+  getCollections: connect(
+    async client => {
+      const { rows } = await client.query(sql`SELECT DISTINCT collection from fields where collection is not null and collection != ''`);
+      return rows.map(c => c.collection);
+    }
   ),
 
   release: connect(async (client, token) => {
