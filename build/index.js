@@ -7,8 +7,13 @@ module.exports = {
 }
 
 if (require.main === module) {
-  buildAssets().catch(
-    e => console.error(e)
+  Promise.all([
+    buildAssets(),
+    runMigrations()
+  ]).catch(
+    e => {
+      console.error(e)
+      process.exit(1);
+    }
   );
-  runMigrations();
 }
