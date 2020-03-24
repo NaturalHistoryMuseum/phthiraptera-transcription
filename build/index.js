@@ -10,5 +10,5 @@ if (require.main === module) {
   buildAssets().catch(
     e => console.error(e)
   );
-  // runMigrations();
+  runMigrations();
 }
