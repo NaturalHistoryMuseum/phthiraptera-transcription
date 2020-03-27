@@ -1,23 +1,23 @@
+const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
-const Bundler = require('parcel-bundler');
 const toCSV = require('csv-stringify')
-const auth = require('./auth');
+const RecursiveIterator = require('recursive-iterator');
+
+// const auth = require('./auth');
 const { render, html, login }  = require('./render');
 const api = require('./api');
-const { nextAsset, saveTranscription, readData, getCollections } = require('./api/database');
-const RecursiveIterator = require('recursive-iterator');
+const db = require('./api/database');
 const { release } = require('./api/database');
+const routes = require('../routes');
+const {readManifest} = require('../manifest');
 
+const { saveTranscription, readData } = db;
+const static = path.resolve(__dirname, '../../dist/browser');
 const app = express();
 
-const bundler = new Bundler('src/client/index.js', {
-  // TODO: Debug minification/fille issue with parcel
-  minify: false
-});
-
-app.use(bundler.middleware())
 app.use(express.static('src/data'))
+app.use(express.static(static))
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.text());
 
@@ -26,16 +26,16 @@ app.post('/api/release', (req, res) => {
   res.sendStatus(204);
 })
 
-app.use(auth(async (req, res) => {
-  res.send(html({
-    title: 'Phthiraptera Transcriptions',
-    head: `
-      <link rel="stylesheet" href="/index.css" />
-      <link rel="stylesheet" href="/Login.css" />
-    `,
-    body: await login()
-  }));
-}));
+// app.use(auth(async (req, res) => {
+//   res.send(html({
+//     title: 'Phthiraptera Transcriptions',
+//     head: `
+//       <link rel="stylesheet" href="/index.css" />
+//       <link rel="stylesheet" href="/Login.css" />
+//     `,
+//     body: await login()
+//   }));
+// }));
 
 app.use('/api', api);
 
@@ -50,23 +50,34 @@ app.post('/', async (req, res, next) => {
   res.redirect('/');
 })
 
-app.get('/', async (req, res, next) => {
+app.get('*', async (req, res, next) => {
   try {
-    const data = await nextAsset({ multiple: req.query.multiple, empty: req.query.empty });
-    const collections = await getCollections();
+    const route = routes.get(req.path);
+    if(!route) {
+      return next();
+    }
+
+    const { Component, styles, clientFile } = readManifest(route);
+
+    const props = Component.loadData ? await Component.loadData(db, req) : null;
+
+    const app = await render(Component, props);
+
+    const links = styles.map(file => `<link rel="stylesheet" href="/${path.relative(static, file)}" />`).join('\n');
+
     res.send(html({
       title: 'Phthiraptera Transcriptions',
       head: `
-        <link rel="stylesheet" href="/index.css" />
+        ${links}
         <script>
-          window.__DATA__ = ${JSON.stringify(data)};
-          window.__COLLECTIONS__ = ${JSON.stringify(collections)};
+          window.__DATA__ = ${JSON.stringify(props)};
         </script>`,
       body: `
-        ${await render({ data, collections })}
-        <script src="/index.js"></script>`
+        ${app}
+        <script src="/${path.relative(static, clientFile)}"></script>
+        <script src="/client/index.js"></script>`
     }));
-  } catch(e) {
+  } catch (e) {
     next(e);
   }
 });

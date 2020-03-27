@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="AppWrapper">
     <nav class="AppWrapper__nav">
-      <img src="nhm.png" height="24">
+      <img src="./nhm.png" height="24">
       <div>Phthiraptera Transcription</div>
     </nav>
 
