@@ -1,23 +1,20 @@
-const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const toCSV = require('csv-stringify')
 const RecursiveIterator = require('recursive-iterator');
 
 // const auth = require('./auth');
-const { render, html, login }  = require('./render');
+const render  = require('./render');
 const api = require('./api');
 const db = require('./api/database');
 const { release } = require('./api/database');
-const routes = require('../routes');
-const {readManifest} = require('../manifest');
+const config = require('../../build/assets/webpack.client.config.js');
 
 const { saveTranscription, readData } = db;
-const static = path.resolve(__dirname, '../../dist/browser');
 const app = express();
 
+app.use(config.output.publicPath, express.static(config.output.path))
 app.use(express.static('src/data'))
-app.use(express.static(static))
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.text());
 
@@ -39,6 +36,7 @@ app.post('/api/release', (req, res) => {
 
 app.use('/api', api);
 
+// Handle form submission
 app.post('/', async (req, res, next) => {
   try {
     await saveTranscription(req.body);
@@ -50,48 +48,22 @@ app.post('/', async (req, res, next) => {
   res.redirect('/');
 })
 
+// Route for all components
 app.get('*', async (req, res, next) => {
   try {
-    const route = routes.get(req.path);
-    if(!route) {
-      return next();
+    const url = req.url;
+    const page = await render(url, async Component => Component.loadData ? await Component.loadData(db, req) : null, 'Phthiraptera Transcriptions');
+
+    if(!page) {
+      next();
+      return;
     }
 
-    const { Component, styles, clientFile } = readManifest(route);
-
-    const props = Component.loadData ? await Component.loadData(db, req) : null;
-
-    const app = await render(Component, props);
-
-    const links = styles.map(file => `<link rel="stylesheet" href="/${path.relative(static, file)}" />`).join('\n');
-
-    res.send(html({
-      title: 'Phthiraptera Transcriptions',
-      head: `
-        ${links}
-        <script>
-          window.__DATA__ = ${JSON.stringify(props)};
-        </script>`,
-      body: `
-        ${app}
-        <script src="/${path.relative(static, clientFile)}"></script>
-        <script src="/client/index.js"></script>`
-    }));
+    res.send(page);
   } catch (e) {
     next(e);
   }
 });
-
-const JSONB_TYPE = 3802;
-const pad = (a, n, string = '') =>
-  Array.from(function*() {
-    let i = 0;
-    while(i < n) {
-      yield i < a.length ? a[i] : string;
-      i++;
-    }
-  }())
-const flatMap = fn => a => a.reduce((acc, val) => acc.concat(fn(val)), []);
 
 const escapeNewlines = value => typeof value === 'string' ? value.replace(/\n/g, '↵') : value;
 

@@ -32,7 +32,6 @@
     "getenv": "^0.7.0",
     "is-port-free": "^1.0.7",
     "jsonwebtoken": "^8.5.1",
-    "parcel-bundler": "^1.12.4",
     "pg": "^7.18.2",
     "pg-connection-string": "^2.2.0",
     "postgres-migrations": "github:paulkiddle/postgres-migrations",
@@ -40,7 +39,20 @@
     "sql-tag": "^1.0.1",
     "vue": "^2.6.11",
     "vue-hot-reload-api": "^2.3.4",
-    "vue-server-renderer": "^2.6.11",
     "vue-template-compiler": "^2.6.11"
+  },
+  "devDependencies": {
+    "css-loader": "^3.4.2",
+    "file-loader": "^6.0.0",
+    "mini-css-extract-plugin": "^0.9.0",
+    "node-sass": "^4.13.1",
+    "null-loader": "^3.0.0",
+    "rimraf": "^3.0.2",
+    "sass-loader": "^8.0.2",
+    "vue-loader": "^15.9.1",
+    "vue-server-renderer": "^2.6.11",
+    "webpack": "^4.42.1",
+    "webpack-merge": "^4.2.2",
+    "webpack-node-externals": "^1.7.2"
   }
 }

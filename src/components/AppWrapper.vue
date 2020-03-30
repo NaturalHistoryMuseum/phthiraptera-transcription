@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="AppWrapper">
     <nav class="AppWrapper__nav">
-      <img src="./nhm.png" height="24">
+      <img :src="$options.logo" height="24">
       <div>Phthiraptera Transcription</div>
     </nav>
 
@@ -10,7 +10,10 @@
 </template>
 
 <script>
+import logo from './nhm.png';
+
 export default {
+  logo,
   name: 'appwrapper'
 }
 </script>

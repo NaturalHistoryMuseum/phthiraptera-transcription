@@ -1,27 +1,12 @@
-const getJson = file => fetch(file).then(res => res.json());
+import data from '../data/form.json';
+
+const getJson = file => fetch(file).then(async res => [...new Set(await res.json())]);
 
 const getCountries = () => getJson('./countries.json');
 const getHosts = () => getJson('./hosts.json');
 
-const localities = ['Real', 'Unreadable', 'Artificial (e.g. museum, zoo, bred, lab etc)'];
-const typeStatuses = [
-  'Allotype',
-  'Holotype',
-  'Lectotype',
-  'Neotype',
-  'Paralectotype',
-  'Paratype',
-  'Syntype',
-  '*Other'
-]
+const { localities, typeStatuses, hostTypes } = data;
 
-const hostTypes = [
-  'No host',
-  'Skin',
-  'Straggler / questionable host',
-  'Other (nest, clothing etc)'
-]
-
-module.exports = {
+export {
   getCountries, localities, getHosts, typeStatuses, hostTypes
-}
+};

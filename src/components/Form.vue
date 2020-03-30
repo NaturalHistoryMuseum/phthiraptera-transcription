@@ -155,37 +155,8 @@
 </template>
 
 <script>
-// TODO: Import these from form-fields.js and figure out why parcel doesn't want to build them
-const getJson = file => fetch(file).then(async res => [...new Set(await res.json())]);
-
-const getCountries = () => getJson('./countries.json');
-const getHosts = () => getJson('./hosts.json');
-
-const localities = {
-  Real: 'Real',
-  Unreadable: 'Unreadable',
-  'Artificial (e.g. museum, zoo, bred, lab etc)': 'Artificial'
-};
-
-const typeStatuses = [
-  'Allotype',
-  'Holotype',
-  'Lectotype',
-  'Neotype',
-  'Paralectotype',
-  'Paratype',
-  'Syntype',
-  '*Other'
-]
-
-const hostTypes = [
-  'No host',
-  'Skin',
-  'Straggler / questionable host',
-  'Other (nest, clothing etc)'
-]
-
 import { Dialog, Tooltip } from './tooltips';
+import { getCountries, localities, getHosts, typeStatuses, hostTypes } from './form-fields.js';
 
 export default {
   components: {
@@ -203,10 +174,14 @@ export default {
     hostTypes,
     userEmail: ''
   }),
-  mounted() {
+  async mounted() {
     getCountries().then(countries => this.countries = countries);
     getHosts().then(hosts => this.hosts = hosts);
     window.addEventListener('unload', this.release);
+
+    // Ensure the root component has mounted and added its own
+    // pop state listener first
+    await this.$nextTick();
 
     // Check for back/forward navigation and restore the form
     window.addEventListener('popstate', event => {

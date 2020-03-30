@@ -105,7 +105,7 @@ export default {
   },
   async mounted() {
     // Get the panzoom (use async import or this component throws on SSR)
-    const Panzoom = await import('@panzoom/panzoom');
+    const { default: Panzoom } = await import('@panzoom/panzoom');
 
     // Set up the panzoom tool
     const panzoom = new Panzoom(this.$refs.image, {

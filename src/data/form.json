@@ -1,0 +1,23 @@
+{
+	"localities": {
+  	"Real": "Real",
+  	"Unreadable": "Unreadable",
+		"Artificial (e.g. museum, zoo, bred, lab etc)": "Artificial"
+	},
+	"typeStatuses": [
+		"Allotype",
+		"Holotype",
+		"Lectotype",
+		"Neotype",
+		"Paralectotype",
+		"Paratype",
+		"Syntype",
+		"*Other"
+	],
+	"hostTypes": [
+		"No host",
+		"Skin",
+		"Straggler / questionable host",
+		"Other (nest, clothing etc)"
+	]
+}

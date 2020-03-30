@@ -1,6 +1,6 @@
 const { Pool, types } = require('pg');
 const jwt = require('jsonwebtoken');
-const { localities, typeStatuses, hostTypes } = require('../../components/form-fields');
+const { localities: localityMap, typeStatuses, hostTypes } = require('../../data/form.json');
 const countries = require('../../data/countries.json');
 const validator = require('../validator');
 const getenv = require('getenv');
@@ -9,6 +9,7 @@ const sql = require('sql-tag')
 const hosts = require('../../data/hosts.json');
 
 const JWT_KEY = getenv('JWT_KEY', 'IJQLX9J9DU8Q');
+const localities = Object.keys(localityMap);
 
 // Output the DATE type as just a tex string
 types.setTypeParser( 1082, 'text', v => v);

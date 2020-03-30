@@ -1,10 +1,7 @@
-const { Client } = require('pg');
-const csv = require('fast-csv');
-const fs = require('fs');
 const getenv = require('getenv');
 const { migrate } = require('postgres-migrations');
 const { parse } = require('pg-connection-string');
- 
+
 const connectionString = getenv('DATABASE_URL', '')
 
 // See https://github.com/ThomWright/postgres-migrations/issues/14
