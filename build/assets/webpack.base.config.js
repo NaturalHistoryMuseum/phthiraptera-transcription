@@ -1,10 +1,11 @@
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const publicPath = require('../../package.json').config.publicPath;
 
 module.exports = {
   mode: 'none',
   output: {
     filename: '[name].[hash].bundle.js',
-    publicPath: '/static/'
+    publicPath
   },
   resolve: {
     extensions: ['.js', '.json', '.vue']

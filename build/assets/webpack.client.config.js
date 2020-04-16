@@ -4,11 +4,12 @@ const baseConfig = require('./webpack.base.config.js')
 const VueSSRClientPlugin = require('vue-server-renderer/client-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const routes = require.resolve('../../src/entry/client.js');
+const outputPath = require('../../package.json').config.outputPath;
 
 module.exports = merge(baseConfig, {
   entry: routes,
   output: {
-    path: path.resolve('./dist/client')
+    path: path.resolve(outputPath)
   },
   plugins: [
     // This plugin generates `vue-ssr-client-manifest.json` in the

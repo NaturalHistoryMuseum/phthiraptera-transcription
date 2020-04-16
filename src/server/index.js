@@ -3,20 +3,21 @@ const bodyParser = require('body-parser');
 const toCSV = require('csv-stringify')
 const RecursiveIterator = require('recursive-iterator');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 
 // const auth = require('./auth');
 const render  = require('./render');
 const db = require('./api/database');
 const { release } = require('./api/database');
 const { ValidationError } = require('./validator');
-const config = require('../../build/assets/webpack.client.config.js');
+const config = require('../../package.json').config;
 
 const { saveTranscription, readData, updateTranscriptions, getNextBarcode } = db;
 const app = express();
 
 app.set('query parser', q => new URLSearchParams(q));
 
-app.use(config.output.publicPath, express.static(config.output.path))
+app.use(config.publicPath, express.static(path.resolve(config.outputPath)))
 app.use(express.static('src/data'))
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.text());
