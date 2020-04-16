@@ -1,6 +1,6 @@
 <template>
-  <AppWrapper>
-    <Transcription class="App__transcription" :records="records" :error="error" :collections="collections"></Transcription>
+  <AppWrapper class="App__wrapper">
+    <Transcription class="App__transcription" :records="recordState" :collections="collections" :action="action" :email="email"></Transcription>
     <div class="App__progress">
       <div class="App__progress-label">{{ records.completed }}/{{ records.total }}</div>
       <progress :max="records.total" :value="records.completed" class="App__progress-bar"></progress>
@@ -15,63 +15,20 @@ import Transcription from '../components/Transcription.vue';
 
 const eventBus = new Vue();
 
-/**
- * Listen for the transcribe event, submit stuff to the server
- * and modify the history object
- */
-function onMount(){
-  // Maybe want to refactor this at some point?
-  // Either use global state or Page-component state
-  const app = this.$root;
-
-  // Listen for the form to fire transcribe event
-  eventBus.$on('transcribe', async ({ payload, target }) => {
-    const formData = Array.from(new FormData(target).entries());
-
-    // Save the form data in the history API so we can restore it later
-    history.replaceState({ formData, records: app.data.records }, '');
-
-    // Save the data to database
-    const res = await window.fetch('/api', {
-      credentials: 'include',
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    })
-
-    if (!res.ok) {
-      app.data.error = await res.json();
-
-      Vue.nextTick(() => location.hash = '#errors');
-      return;
-    }
-
-    // Get the next set of records
-    const records = await(await window.fetch('/api', { credentials: 'include' })).json();
-
-    // Push a new history state so the user can go back if needed
-    history.pushState({ records }, '');
-
-    if(payload.collection && !app.data.collections.includes(payload.collection)) {
-      app.data.collections.push(payload.collection);
-    }
-
-    app.data.records = records;
-    app.data.error = null;
-  });
-
-  // Restore the app state on history navigate
-  window.onpopstate = (event) => {
-    app.data.records = event.state.records;
-    app.data.error = null;
-  }
-}
-
 export default {
-  mounted: onMount,
+  mounted(){
+    if(history.state) {
+      this.historyState = history.state;
+    }
+  },
+  data(){
+    return { historyState: null };
+  },
+  computed: {
+    recordState() {
+      return this.history || this.records;
+    }
+  },
   components: {
     AppWrapper,
     Transcription
@@ -80,21 +37,31 @@ export default {
     eventBus
   },
   name: 'app',
-  props: ['records', 'error', 'collections'],
+  props: ['records', 'collections', 'action', 'email'],
   /**
    * Load data from the API endpoint
    */
   async loadData(api, req){
+    // Todo: Determine newness based on existing db records
+    const isNew = req.query.get('new');
+    const barcodes = req.query.getAll('barcode');
+    const edit = !isNew && barcodes && barcodes.length;
+
     return {
-      records: await api.nextAsset({ multiple: req.query.multiple, empty: req.query.empty }),
+      action: edit ? '/edit' : '/',
+      records: await api.getAssets(barcodes, edit),
       collections: await api.getCollections(),
-      error: null
+      email: req.cookies.email
     }
   }
 }
 </script>
 
 <style>
+.App__wrapper {
+  overflow: hidden;
+}
+
 .App__transcription {
   flex-grow: 1;
 }

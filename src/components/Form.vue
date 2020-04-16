@@ -1,5 +1,8 @@
 <template>
-  <form ref="form" class="Form" method="POST" @submit="transcribe">
+  <form ref="form" class="Form" method="POST" :action="action" @submit="doSubmit">
+    <input type="hidden" name="barcode[]" v-for="barcode in barcodes" :key="barcode" :value="barcode" />
+    <input type="hidden" name="thumbnail[]" v-for="thumbnail in thumbnails" :key="thumbnail" :value="thumbnail" />
+    <input type="hidden" name="sciName" :value="scientificName" />
     <Dialog></Dialog>
     <h2 v-if="scientificName" class="Form__sciname">{{ scientificName }}</h2>
     <div class="Form__warning" v-else>Could not get scientific name - is data portal down?</div>
@@ -8,126 +11,142 @@
       <div class="Form__columns">
         <fieldset class="Form__fieldset">
           <legend>Host</legend>
-          <label class="Form__label">
-            Host <Tooltip>To search, type <em>species, Genus</em> and select from the list - e.g. <em>bufo, Bufo</em>.</Tooltip>
-            <input name="host" list="hosts" type="text" class="Form__input" @blur="checkHost">
-            <datalist id="hosts">
-              <option v-for="host in hosts" :key="host">{{ host }}</option>
-            </datalist>
-          </label>
-          <label class="Form__label">
-            Host (if not in list)
-            <input name="host_other" class="Form__input">
-          </label>
-          <label class="Form__label">
-            Host type
-            <select name="host_type" class="Form__input">
-              <option value="No host">No host</option>
-              <optgroup label="Host present">
-                <option value="" selected>Host present</option>
-                <option v-for="hostType in hostTypes.slice(1)" :key="hostType" :value="hostType">{{ hostType }}</option>
-              </optgroup>
-            </select>
-          </label>
+          <Field :reset="showReset" v-slot="{ vModel, disabled }" :value="fields.host" class="Form__float-reset">
+            <fieldset :disabled="disabled" class="Form__group">
+              <div class="Form__label">
+                <label for="host">Host</label><Tooltip>To search, type <em>species, Genus</em> and select from the list - e.g. <em>bufo, Bufo</em>.</Tooltip>
+              </div>
+              <input class="Form__input" name="host" id="host" list="hosts" @change="vModel.value = $event.target.value" :value="hosts.includes(vModel.value) ? vModel.value : ''">
+              <datalist id="hosts">
+                <option v-for="host in hosts" :key="host">{{ host }}</option>
+              </datalist>
+              <label class="Form__label">
+                Host (if not in list)
+                <input class="Form__input" name="host_other" id="host_other" @change="vModel.value = $event.target.value" :value="!hosts.includes(vModel.value) ? vModel.value : ''">
+              </label>
+            </fieldset>
+          </Field>
+          <Select :reset="showReset" name="host_type" value="" label="Host type" :value="fields.host_type">
+            <option value="No host">No host</option>
+            <optgroup label="Host present">
+              <option value="">Host present</option>
+              <option v-for="hostType in hostTypes.slice(1)" :key="hostType" :value="hostType">{{ hostType }}</option>
+            </optgroup>
+          </Select>
         </fieldset>
         <fieldset class="Form__fieldset">
           <legend>Locality</legend>
-          <div class="Form__radioset">
-            <label v-for="(label, l) in localities" :key="l" class="Form__checkbutton">
-              <input type="radio" name="locality" :value="l" :checked="l==='Real'" v-once>
-              {{ label }}
-            </label>
-            <Tooltip>Examples of artificial localities include museum, zoo, bred, lab, etc.</Tooltip>
-          </div>
-          <label class="Form__label">
-            Country
-            <select name="country" class="Form__input">
-              <option selected></option>
-              <option v-for="country in countries" :key="country">{{ country }}</option>
-            </select>
-          </label>
-          <label class="Form__label">
-            Precise locality
-            <input class="Form__input" name="precise_locality">
-          </label>
+          <Field :reset="showReset" empty="Real" v-slot="{ vModel, disabled }" :value="fields.locality">
+            <fieldset class="Form__radioset" :disabled="disabled">
+              <label v-for="(label, l) in localities" :key="l" class="Form__checkbutton">
+                <input type="radio" name="locality" :value="l" v-model="vModel.value">
+                {{ label }}
+              </label>
+              <Tooltip>Examples of artificial localities include museum, zoo, bred, lab, etc.</Tooltip>
+            </fieldset>
+          </Field>
+          <Select :reset="showReset" name="country" label="Country" :value="fields.country">
+            <option selected></option>
+            <option v-for="country in countries" :key="country">{{ country }}</option>
+          </Select>
+          <Input :reset="showReset" label="Precise locality" name="precise_locality" :value="fields.precise_locality"></Input>
         </fieldset>
         <fieldset class="Form__fieldset">
           <legend>Collector(s)</legend>
-          <div v-for="n in collectorCount" :key="n" class="Form__row">
-            <label class="Form__label Form__initials-col">
-              Collector initials
-              <input name="collector_initials[]" class="Form__input">
-            </label>
-            <label class="Form__label Form__surname-col">
-              Collector surname
-              <input name="collector_surnames[]" class="Form__input">
-            </label>
-          </div>
-          <button @click="addCollector" type="button" class="Form__button">+</button>
-          <label class="Form__label">
-            Institution or collection
-            <input name="collection" list="collections" class="Form__input">
-            <datalist id="collections">
-              <option v-for="c in collections" :key="c">{{ c }}</option>
-            </datalist>
-          </label>
+          <Field :reset="showReset" :value="collectorNames" v-slot="{ vModel, disabled }" class="Form__float-reset">
+            <fieldset  class="Form__group" :disabled="disabled">
+              <div v-for="(collector, ix) in vModel.value" :key="ix" class="Form__row">
+                <label class="Form__label Form__initials-col">
+                  Collector initials
+                  <input name="collector_initials[]" class="Form__input" v-model="collector.initials">
+                </label>
+                <label class="Form__label Form__surname-col">
+                  Collector surname
+                  <input name="collector_surnames[]" class="Form__input" v-model="collector.surname">
+                </label>
+              </div>
+              <button @click="addCollector(vModel)" type="button" class="Form__button">+</button>
+            </fieldset>
+          </Field>
+          <Input :reset="showReset" label="Institution or collection" name="collection" list="collections" :value="fields.collection"></Input>
+          <datalist id="collections">
+            <option v-for="c in collections" :key="c">{{ c }}</option>
+          </datalist>
         </fieldset>
         <fieldset class="Form__fieldset">
           <legend>Collection Date</legend>
-          <label class="Form__label" for="collection_day">
-            Date <Tooltip>Formatted as dd-mm-yyyy</Tooltip>
-          </label>
-          <div class="Form__input-group">
-            <input type="number" placeholder="dd" min="1" max="31" name="collection_day" id="collection_day">
-            <input type="number" placeholder="mm" min="1" max="12" name="collection_month">
-            <input type="number" placeholder="yyyy" name="collection_year">
-          </div>
-          <div class="Form__radioset">
-            <label class="Form__checkbutton">
-              <input type="checkbox" name="collection_range" value="1">
-              Date range
-            </label>
-          </div>
+          <Field :reset="showReset" :value="defaultDate">
+            <template v-slot:label>
+              <label class="Form__label" for="collection_day">
+                Date <Tooltip>Formatted as dd-mm-yyyy</Tooltip>
+              </label>
+            </template>
+            <template v-slot:default="{ vModel, disabled }">
+              <fieldset class="Form__input-group" :disabled="disabled">
+                <input v-model="vModel.value && vModel.value.day" type="number" placeholder="dd" min="1" max="31" name="collection_day" id="collection_day">
+                <input v-model="vModel.value && vModel.value.month" type="number" placeholder="mm" min="1" max="12" name="collection_month">
+                <input v-model="vModel.value && vModel.value.year" type="number" placeholder="yyyy" name="collection_year">
+              </fieldset>
+              <div class="Form__radioset">
+                <label class="Form__checkbutton">
+                  <input type="checkbox" name="collection_range" value="1" v-model="vModel.value && vModel.value.range">
+                  <input type="hidden" name="collection_range" value="" v-if="!disabled && !(vModel.value && vModel.value.range)">
+                  Date range
+                </label>
+              </div>
+            </template>
+          </Field>
         </fieldset>
         <fieldset class="Form__fieldset">
           <legend>Registration Number</legend>
-          <label class="Form__label">
-            BM number <Tooltip>e.g. <em>BM 1980-1</em></Tooltip>
-            <input name="registration_number" class="Form__input">
-          </label>
+          <Input :reset="showReset" name="registration_number" :value="fields.registration_number">
+            <div class="Form__label">
+              <label for="registration_number">
+                BM number
+              </label>
+              <Tooltip>e.g. <em>BM 1980-1</em></Tooltip>
+            </div>
+          </Input>
         </fieldset>
         <fieldset class="Form__fieldset">
           <legend>Type Status</legend>
-          <div class="Form__radioset">
-            <label v-for="status in typeStatuses" :key="status" class="Form__checkbutton">
-              <input type="checkbox" name="type_statuses[]" :value="status">{{ status }}
-            </label>
-          </div>
+          <Field :reset="showReset" :value="fields.type_statuses" :empty="[]" v-slot="{ vModel, disabled }">
+            <fieldset class="Form__radioset" :disabled="disabled">
+              <label v-for="status in typeStatuses" :key="status" class="Form__checkbutton">
+                <input type="checkbox" name="type_statuses[]" :value="status" v-model="vModel.value">{{ status }}
+              </label>
+              <input type="hidden" name="type_statuses[]" value="" v-if="!disabled && vModel.value && (vModel.value.length === 0)">
+            </fieldset>
+          </Field>
         </fieldset>
         <fieldset class="Form__fieldset">
           <legend>Sex/Stage</legend>
-          <label class="Form__label">
-            Total number of specimens
-            <input name="total_count" type="number" class="Form__input">
-          </label>
-          <div class="Form__radioset">
-            <label v-for="stage in ['adult female(s)', 'adult male(s)', 'nymph(s)']" :key="stage" class="Form__checkbutton">
-              <input name="stage[]" type="checkbox" :value="stage">
-              {{ stage }}
-            </label>
-          </div>
+          <Input :reset="showReset" name="total_count" type="number" label="Total number of specimens" :value="fields.total_count"></Input>
+          <Field :reset="showReset" :value="stages" :empty="[]" v-slot="{ vModel, disabled }">
+            <fieldset class="Form__radioset" :disabled="disabled">
+              <label v-for="stage in stageNames" :key="stage" class="Form__checkbutton">
+                <input name="stage[]" type="checkbox" :value="stage" v-model="vModel.value">
+                {{ stage }}
+              </label>
+            </fieldset>
+          </Field>
         </fieldset>
 
         <fieldset class="Form__fieldset">
           <legend>Other</legend>
-          <label class="Form__checkbutton">
-            <input type="checkbox" name="requires_verification">
-            Requires Verification
-          </label>
-          <label class="Form__label">
-            Explanation (if needed)
-            <textarea name="notes" maxlength="255" class="Form__input"></textarea>
-          </label>
+          <Field :reset="showReset" v-slot="{ vModel, disabled }" :value="fields.requires_verification">
+            <label class="Form__checkbutton">
+              <input type="checkbox" name="requires_verification" v-model="vModel.value" :disabled="disabled">
+              <input type="hidden" name="requires_verification" value="" v-if="!disabled && !vModel.value">
+              Requires Verification
+            </label>
+          </Field>
+          <Field :reset="showReset" v-slot="{ vModel, disabled }" :value="fields.notes">
+            <label class="Form__label">
+              Explanation (if needed)
+              <textarea name="notes" maxlength="255" class="Form__input" v-model="vModel.value" :disabled="disabled"></textarea>
+            </label>
+          </Field>
         </fieldset>
 
         <div class="Form__error" v-if="error" id="errors">
@@ -142,7 +161,7 @@
     <div class="Form__footer">
       <div class="Form__controls">
         <label class="Form__label Form__control">Email:
-          <input type="email" name="user_email" v-model="userEmail" class="Form__email" required>
+          <input type="email" name="user_email" :value="email" class="Form__email" required>
         </label>
         <Tooltip>
           <b>Data Protection</b><br>
@@ -157,22 +176,35 @@
 <script>
 import { Dialog, Tooltip } from './tooltips';
 import { getCountries, localities, getHosts, typeStatuses, hostTypes } from './form-fields.js';
+import Field from './Field';
+import Select from './fields/Select';
+import Input from './fields/Input';
+
+const lifeStages = {
+  adult_female: 'adult female(s)',
+  adult_male: 'adult male(s)',
+  nymph: 'nymph(s)'
+}
 
 export default {
   components: {
     Tooltip,
-    Dialog
+    Dialog,
+    Field,
+    Select,
+    Input
   },
-  props: ['token', 'error', 'scientificName', 'collections'],
+  props: ['token', 'scientificName', 'collections', 'values', 'barcodes', 'thumbnails', 'action', 'email'],
   inject: ['eventBus'],
   data: () => ({
-    collectorCount: 1,
     countries: [],
     localities,
     hosts: [],
     typeStatuses,
     hostTypes,
-    userEmail: ''
+    error: null,
+    multiple: Field.multiple,
+    stageNames: Object.values(lifeStages)
   }),
   async mounted() {
     getCountries().then(countries => this.countries = countries);
@@ -261,39 +293,86 @@ export default {
         event.target.value = '';
       }
     },
-    transcribe(event){
-      const payload = {};
-      const target = event.target;
-      for (const el of target.elements) {
-        if(!el.name || ((el.type === "checkbox" || el.type === "radio") && !el.checked)) {
-          continue;
+    doSubmit(event){
+      const form = event.target;
+      const payload = new URLSearchParams(new FormData(form));
+
+      fetch(form.action, {
+        method: form.method,
+        body: payload,
+        headers: {
+          Accept: 'application/json'
+        },
+        redirect: 'manual'
+      }).then(async res => {
+        const body = res.headers.get('Content-Type').indexOf('json') > -1 ? await res.json() : await res.text();
+
+        if(res.status >= 400) {
+          this.error = Array.isArray(body) ? body : [body];
+          this.$nextTick(() => {
+            document.querySelector('errors').scrollIntoView();
+          });
+        } else {
+          const url = new URL(window.location);
+          const sp = new URLSearchParams(url.search);
+          sp.delete('new');
+          url.search = sp;
+          window.history.replaceState(body, null, url.toString());
+          const location = res.headers.get('location') || (body && body.location) || res.url;
+          window.location = location;
         }
-
-        for (const value of [...(el.selectedOptions || [el])].map(o => o.value)) {
-          const match = el.name.match(/^(.+)\[\]$/);
-
-          if(match) {
-            payload[match[1]] = (payload[match[1]] || []).concat(value);
-          } else {
-            payload[el.name] = value;
-          }
-        }
-      }
-
-      // Fire the transcribe event up the event bus so we can post to the API
-      this.eventBus.$emit('transcribe', { payload, target })
+      })
       event.preventDefault();
-      this.collectorCount = 1;
     },
     /**
      * Add another set of collector fields and focus the last one
      */
-    addCollector(){
-      this.collectorCount++;
+    addCollector(vModel){
+      if(vModel.value) {
+        vModel.value.push({});
+      } else {
+         vModel.value = [{}];
+      }
+
       this.$nextTick(() => {
         const ciCol = this.$refs.form.elements.namedItem('collector_initials[]');
         ciCol[ciCol.length-1].focus();
       });
+    }
+  },
+  computed: {
+    showReset(){
+      return Boolean(this.values && this.values.length > 1);
+    },
+    fields() {
+      const records = this.values;
+
+      return (records && records.length) ? Object.fromEntries(Object.entries(records[0]).map(
+        ([key, val]) => [key, Field.multiValues(records.map(r => r[key]))]
+      )) : {};
+    },
+    defaultDate(){
+      const date = {
+        day: this.fields.collection_day,
+        month: this.fields.collection_month,
+        year: this.fields.collection_year,
+        range: this.fields.collection_range
+      };
+
+      return Object.values(date).includes(Field.multiple) ? Field.multiple : date;
+    },
+    stages(){
+      const stages = Object.keys(lifeStages);
+      const values = stages.map(s => this.fields[s]);
+      const multiple = values.includes(Field.multiple);
+      return multiple ? Field.multiple : stages.filter(s => this.fields[s]).map(s => lifeStages[s]);
+    },
+    collectorNames(){
+      const collectors = this.fields.collectors;
+      if(collectors === Field.multiple) {
+        return Field.multiple;
+      }
+      return collectors && collectors.length ? collectors : [{}];
     }
   }
 }
@@ -364,6 +443,12 @@ export default {
   font-size: 0.9em;
 }
 
+.Form__group {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
 .Form__fieldset {
   -webkit-column-break-inside: avoid; /* Chrome, Safari, Opera */
   page-break-inside: avoid; /* Firefox */
@@ -381,6 +466,8 @@ export default {
   margin: -0.25em;
   margin-bottom: 0.5em;
   align-items: center;
+  padding: 0;
+  border: none;
 }
 
 .Form__checkbutton {
@@ -407,6 +494,8 @@ export default {
 .Form__input-group {
   margin: 3px 0 10px;
   width: 100%;
+  border: none;
+  padding: 0;
 }
 
 .Form__input,
@@ -453,6 +542,13 @@ export default {
 
 .Form__surname-col {
   flex: 2;
+}
+
+.Form__float-reset .Field__reset {
+  position: absolute;
+  width: auto;
+  right: 0;
+  top: -15px;
 }
 
 .Form__info {

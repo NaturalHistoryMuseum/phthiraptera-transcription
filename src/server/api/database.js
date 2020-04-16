@@ -5,7 +5,7 @@ const countries = require('../../data/countries.json');
 const validator = require('../validator');
 const getenv = require('getenv');
 const axios = require('axios')
-const sql = require('sql-tag')
+const { default: sql, join, raw } = require('sql-template-tag')
 const hosts = require('../../data/hosts.json');
 
 const JWT_KEY = getenv('JWT_KEY', 'IJQLX9J9DU8Q');
@@ -42,45 +42,76 @@ const connect = fn => async (...args) => {
   }
 }
 
+async function getScientificName(barcode){
+  const url = `http://data.nhm.ac.uk/api/action/datastore_search?resource_id=05ff2255-c38a-40c9-b657-4ccb55ab2feb&limit=5&q=${barcode}`;
+
+  const httpClient = axios.create();
+  httpClient.defaults.timeout = 2500;
+  const result = httpClient.get(url);
+
+  try {
+    const record = (await result).data.result.records[0];
+    const sciName = record.specificEpithet ? record.genus + ' ' + record.specificEpithet : record.scientificName;
+    return sciName;
+  } catch(e) {
+    console.warn('Data portal appears to be down; ' + e.toString());
+  }
+}
+
+function mapCollectors(data){
+  return data.collector_surnames ? data.collector_surnames.map((surname, index) => ({
+    surname,
+    initials: data.collector_initials[index]
+  })).filter(c => c.surname || c.initials) : []
+}
+
+function validateTranscription(data, ignoreEmpty) {
+  const validate = validator();
+
+  if('type_statuses' in data) {
+    data.type_statuses = data.type_statuses.filter(s => s!='');
+  }
+
+  const c = f => (!ignoreEmpty || (f in data));
+
+  if(c('locality')) validate(localities.includes(data.locality), `Invalid locality "${data.locality}"`);
+  if(c('country')) validate(!data.country || countries.includes(data.country), `Invalid country "${data.country}"`);
+  if(c('host_type')) validate(!data.host_type || hostTypes.includes(data.host_type), `Invalid host type "${data.host_type}"`);
+  if(c('host') || c('host_other')) validate(!(data.host && data.host_other), 'Fill in either "Host" or "Host (other)", but not both')
+  if(c('type_statuses'))
+  for(const typeStatus of (data.type_statuses || [])) {
+    validate(!!typeStatuses.includes(typeStatus), `Invalid type status "${typeStatus}`)
+  }
+  if(c('total_count')) validate(!data.total_count ||  data.total_count > 0, `Total count must be > 0 or empty`)
+
+  validate(!!data.user_email, 'User email must not be empty.')
+
+  if(c('collector_surnames')) validate(mapCollectors(data).every(c => c.surname), `Add surname to all collectors`)
+  if(c('notes')) validate(data.notes.length <= 255, 'Explanation must be 255 characters or less')
+
+  return validate.throw();
+}
+
 module.exports = {
   saveTranscription: connect(async (client, data) => {
-    const { barcode, exp } = jwt.verify(data.token, JWT_KEY, { ignoreExpiration: true });
+    const barcode = data.barcode[0];
 
-    // if (exp < Date.now()) {
-    //   if((await client.query(sql`SELECT * FROM fields WHERE barcode=${barcode}`)).rowCount > 0) {
-    //     return;
-    //     //throw new Error('This slide was transcribed while you were filling out the form. Please refresh and try another.');
-    //   }
-    // }
+    data.country = data.country || '';
+    await validateTranscription(data);
 
-    const validate = validator();
-
-    const host = data.host || data.host_other;
-
-    const collectors = data.collector_surnames.map((surname, index) => ({
-      surname,
-      initials: data.collector_initials[index]
-    })).filter(c => c.surname || c.initials)
-
-    validate(localities.includes(data.locality), `Invalid locality "${data.locality}"`);
-    validate(!data.country || countries.includes(data.country), `Invalid country "${data.country}"`);
-    validate(!data.host_type || hostTypes.includes(data.host_type), `Invalid host type "${data.host_type}"`);
-    validate(!(data.host && data.host_other), 'Fill in either "Host" or "Host (other)", but not both')
-    for(const typeStatus of (data.type_statuses || [])) {
-      validate(!!typeStatuses.includes(typeStatus), `Invalid type status "${typeStatus}`)
-    }
-    validate(!data.total_count ||  data.total_count > 0, `Total count must be > 0 or empty`)
-    validate(!!data.user_email, 'User email must not be empty.')
-    validate(collectors.every(c => c.surname), `Add surname to all collectors`)
-    validate(data.notes.length <= 255, 'Explanation must be 255 characters or less')
-
-    await validate.throw();
+    const collectors = mapCollectors(data);
 
     const stage = data.stage || [];
+    const host = data.host || data.host_other;
+
+    await (client.query(sql`
+      INSERT INTO info (barcode, thumbnails, sciName)
+      VALUES(${barcode}, ${JSON.stringify(data.thumbnail)}, ${data.sciName})
+    `).catch(e => {
+      console.error(e);
+    }));
 
     // Remove any previously entered fields
-    await client.query(sql`DELETE FROM fields WHERE barcode=${barcode}`);
-
     return client.query(sql`
       INSERT INTO fields (
         barcode,
@@ -131,10 +162,109 @@ module.exports = {
         NOW()
       );`)
   }),
+  updateTranscriptions: connect(async (client, data) => {
+    const barcodes = data.barcode;
+
+    await validateTranscription(data, true);
+
+    const collectors = mapCollectors(data);
+
+    const stage = data.stage || [];
+    const host = data.host || data.host_other;
+
+    const fields = {
+      ...Object.fromEntries([
+        'locality',
+        'country',
+        'precise_locality',
+        'host_type',
+        'collection_year',
+        'collection_month',
+        'collection_day',
+        'collection_range',
+        'collection',
+        'type_statuses',
+        'registration_number',
+        'total_count',
+        'user_email',
+        'requires_verification',
+        'notes'
+      ].map(k => [k ,k])),
+      host: ['host', 'host_other'],
+      collectors: ['collector_surnames','collector_initials'],
+      adult_female: 'stage',
+      adult_male: 'stage',
+      nymph: 'stage'
+    }
+
+    const sqlFields = Object.keys(fields).filter(k => {
+      if(Array.isArray(fields[k])) {
+        return fields[k].some(n => n in data);
+      } else {
+        return fields[k] in data;
+      }
+    });
+
+    const values = {
+      locality: data.locality,
+      country: data.country,
+      precise_locality: data.precise_locality,
+      host: host,
+      host_type: data.host_type,
+      collection_year: data.collection_year,
+      collection_month: data.collection_month,
+      collection_day: data.collection_day,
+      collection_range: !!data.collection_range,
+      collectors: JSON.stringify(collectors),
+      collection: data.collection,
+      type_statuses: JSON.stringify((data.type_statuses || []).filter(Boolean)),
+      registration_number: data.registration_number,
+      total_count: data.total_count || null,
+      adult_female: !!stage.includes('adult female(s)'),
+      adult_male: !!stage.includes('adult male(s)'),
+      nymph: !!stage.includes('nymph(s)'),
+      user_email: data.user_email,
+      requires_verification: !!data.requires_verification,
+      notes: data.notes,
+    };
+
+    const q = sql`
+      UPDATE fields
+      SET ${join(sqlFields.map(field => sql`
+        ${raw(field)} = ${values[field]}`
+      ))}
+      WHERE barcode = ANY(${barcodes})
+    `;
+
+    return client.query(q)
+  }),
+  getNextBarcode: connect(async client => {
+    const timeoutMins = getenv('TIMEOUT_MINS', '5');
+    const { rows } = await client.query(`
+      SELECT images.*
+      FROM images
+        LEFT JOIN fields ON images.barcode = fields.barcode
+      WHERE images.asset_id IS NOT NULL
+        AND fields.barcode IS NULL
+        AND (
+          access_date IS NULL
+          OR access_date < NOW() - INTERVAL '${timeoutMins} minutes'
+        )
+      ORDER BY images.order;
+    `);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    const barcode = rows[0].barcode;
+
+    await client.query(sql`UPDATE images SET access_date=NOW() WHERE barcode=${barcode}`);
+
+    return barcode;
+  }),
   nextAsset: connect(async (client, opts = {}) => {
     const timeoutMins = getenv('TIMEOUT_MINS', '5');
-
-    const count = client.query(`select (select count(distinct(barcode)) from images) as total, (select count(*) from fields) as completed`);
 
     const { rows } = opts.empty ? { rows: [] } : await client.query(`
       SELECT images.*
@@ -161,22 +291,9 @@ module.exports = {
 
     await client.query(sql`UPDATE images SET access_date=NOW() WHERE barcode=${barcode}`);
 
-    const url = `http://data.nhm.ac.uk/api/action/datastore_search?resource_id=05ff2255-c38a-40c9-b657-4ccb55ab2feb&limit=5&q=${barcode}`;
-
-    const httpClient = axios.create();
-    httpClient.defaults.timeout = 2500;
-    const result = httpClient.get(url);
-
     const assets = rows.filter(row => row.barcode === barcode);
 
-    let scientificName = null;
-
-    try {
-      const record = (await result).data.result.records[0];
-      scientificName = record.specificEpithet ? record.genus + ' ' + record.specificEpithet : record.scientificName;
-    } catch(e) {
-      console.warn('Data portal appears to be down; ' + e.toString());
-    }
+    const scientificName = await getScientificName(barcode);
 
     const token = jwt.sign({barcode}, JWT_KEY, {
       expiresIn: `${timeoutMins} minutes`
@@ -187,6 +304,37 @@ module.exports = {
       assets,
       token,
       ...(await count).rows[0]
+    };
+  }),
+
+  getAssets: connect(async (client, barcodes, editing) => {
+    const { rows: assets } = await client.query(sql`
+      SELECT * FROM images WHERE barcode = ANY(${barcodes})
+    `);
+
+    const { rows: fields } = await client.query(sql`
+      SELECT * FROM fields WHERE barcode = ANY(${barcodes})
+    `);
+
+    let scientificName;
+
+    if(barcodes.length > 1) {
+      scientificName = `${barcodes.length} transcriptions`
+    } else {
+      scientificName = await getScientificName(barcodes[0]);
+    }
+
+    if(editing) {
+      scientificName = 'Editing ' + scientificName;
+    }
+
+    const { rows: [ count ] } = await client.query(`select (select count(distinct(barcode)) from images) as total, (select count(*) from fields) as completed`);
+
+    return {
+      scientificName,
+      assets,
+      fields,
+      ...count
     };
   }),
 
@@ -209,10 +357,43 @@ module.exports = {
     }
   ),
 
+  getTranscriptions: connect(
+    async (client, options) => {
+      let barcodes = Array.isArray(options) ? options : null;
+      const limit = options.limit || 10;
+      const offset = options.offset || 0;
+
+      const select = sql`SELECT fields.*, info.sciname, info.thumbnails FROM fields LEFT JOIN info ON (info.barcode = fields.barcode) ORDER BY fields.date DESC NULLS LAST`;
+
+      const { rows } = await client.query(barcodes ? sql`${select} WHERE barcode = ANY(${barcodes})` : sql`${select} LIMIT ${limit} OFFSET ${offset}`);
+
+      if(!barcodes || !barcodes.length) {
+        barcodes = rows.map(r => r.barcode);
+      }
+      const { rows: images } = await client.query(sql`SELECT * FROM images WHERE barcode = ANY(${barcodes})`);
+      const map = {};
+      for(const image of images) {
+        map[image.barcode] = (map[image.barcode] || []).concat(image.asset_id);
+      }
+
+      for(const r of rows) {
+        if(!r.sciname) {
+          const sciName = await getScientificName(r.barcode);
+          if(sciName) {
+            await client.query(sql`INSERT INTO info (barcode, sciName) VALUES(${r.barcode}, ${sciName}) ON CONFLICT (barcode) DO UPDATE SET sciName=${sciName}`);
+            r.sciname = sciName;
+          }
+        }
+      }
+
+      return Promise.all(rows.map(async r => ({ ...r, scientificName: r.sciname, assets: map[r.barcode] })));
+    }
+  ),
+
   release: connect(async (client, token) => {
     try {
-      const { barcode } = jwt.verify(token, JWT_KEY);
-      await client.query(sql`UPDATE images SET access_date=null WHERE barcode=${barcode}`);
+      // const { barcode } = jwt.verify(token, JWT_KEY);
+      // await client.query(sql`UPDATE images SET access_date=null WHERE barcode=${barcode}`);
     } catch(e) {
       console.log(e);
     }

@@ -9,7 +9,7 @@
     ref="image"
     :alt="error || ''"
     v-on="$listeners"
-    @load="loading = false"
+    @load="loadEnd"
     @error="error = 'The image could not be loaded, there may be network or infrastructure issues.'"
     @dblclick="rotate($event.shiftKey ? -1 : 1)"
     @wheel="zoomWithWheel"
@@ -34,7 +34,7 @@ export default {
      * Get the source URL of the asset
      */
     src() {
-      return `http://www.nhm.ac.uk/services/media-store/asset/${this.assetId}/contents/preview`
+      return `/asset/${this.assetId}`
     },
     /**
      * Get the css transformation for this image
@@ -101,6 +101,24 @@ export default {
       const e = new Proxy(event, handler);
 
       this.panzoom.zoomWithWheel(e);
+    },
+
+    toDataThumbnail(size=200, quality=0.4){
+      const img = this.$el;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const scale = size/Math.max(img.naturalWidth, img.naturalHeight);
+      const width = img.naturalWidth * scale;
+      const height = img.naturalHeight * scale;
+      canvas.getContext('2d').drawImage(img, (size-width)/2, (size-height)/2, width, height)
+      return canvas.toDataURL('image/jpg', quality);
+    },
+
+    loadEnd(){
+      this.loading = false;
+
+      this.$emit('thumbnail', this.toDataThumbnail());
     }
   },
   async mounted() {

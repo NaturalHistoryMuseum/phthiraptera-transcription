@@ -13,7 +13,8 @@ app.get('/', async (req, res, next) => {
   }
 });
 
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+
 app.post('/', async (req, res, next) => {
   try {
     res.json(await saveTranscription(req.body));

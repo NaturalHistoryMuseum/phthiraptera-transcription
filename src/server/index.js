@@ -2,21 +2,26 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const toCSV = require('csv-stringify')
 const RecursiveIterator = require('recursive-iterator');
+const cookieParser = require('cookie-parser');
 
 // const auth = require('./auth');
 const render  = require('./render');
 const api = require('./api');
 const db = require('./api/database');
 const { release } = require('./api/database');
+const { ValidationError } = require('./validator');
 const config = require('../../build/assets/webpack.client.config.js');
 
-const { saveTranscription, readData } = db;
+const { saveTranscription, readData, updateTranscriptions, getNextBarcode } = db;
 const app = express();
+
+app.set('query parser', q => new URLSearchParams(q));
 
 app.use(config.output.publicPath, express.static(config.output.path))
 app.use(express.static('src/data'))
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.text());
+app.use(cookieParser());
 
 app.post('/api/release', (req, res) => {
   release(req.body);
@@ -36,22 +41,83 @@ app.post('/api/release', (req, res) => {
 
 app.use('/api', api);
 
+const redirect = (req, res, loc) => {
+  res.location(loc);
+  if(req.accepts('html', 'json') !== 'json') {
+    res.statusCode = 302;
+  }
+}
+
 // Handle form submission
+// Todo: Delete api/index
 app.post('/', async (req, res, next) => {
   try {
+    if(req.body.user_email) {
+      res.cookie('email', req.body.user_email, { maxAge: 900000 });
+    }
     await saveTranscription(req.body);
   } catch(e) {
     next(e);
     return;
   }
 
-  res.redirect('/');
+  redirect(req, res, '/');
+  res.json(await db.getAssets(req.body.barcode, false));
+})
+
+app.post('/edit', async (req, res, next) => {
+  try {
+    await updateTranscriptions(req.body);
+  } catch(e) {
+    next(e);
+    return;
+  }
+
+  redirect(req, res, '/browse');
+  res.json(await db.getAssets(req.body.barcode, true));
+});
+
+app.get('/asset/:id', async (req, res, next) => {
+  const assetId = req.param('id');
+  require('https').get(`https://www.nhm.ac.uk/services/media-store/asset/${assetId}/contents/preview`,
+    proxyRes => {
+      if(proxyRes.statusCode >= 400){
+        res.status(proxyRes.statusCode);
+      }
+      proxyRes.pipe(res);
+    }
+  );
+});
+
+app.get('/', async (req, res, next) => {
+  const barcodes = req.query.getAll('barcode');
+  if(!barcodes || !barcodes.length) {
+    const nextBarcode = await getNextBarcode();
+    res.redirect('/?new=1&barcode='+nextBarcode);
+    return;
+  }
+
+  next();
+});
+
+app.use((error, req, res, next) => {
+  if(req.accepts(['html', 'json']) === 'json') {
+    switch (true) {
+      case error instanceof ValidationError:
+        res.status(400).json(error.errors);
+        break;
+      default:
+        res.status(500).json([
+          error.message
+        ])
+    }
+  }
 })
 
 // Route for all components
 app.get('*', async (req, res, next) => {
   try {
-    const url = req.url;
+    const url = req.path;
     const page = await render(url, async Component => Component.loadData ? await Component.loadData(db, req) : null, 'Phthiraptera Transcriptions');
 
     if(!page) {

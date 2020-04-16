@@ -4,6 +4,7 @@ export default {
 		'/': () => import('./App.vue'),
 		'/login': () => import('./Login.vue'),
 		'/browse': () => import('./Browse.vue'),
+		'/edit': () => import('./Edit.vue')
 	},
 
 	/**

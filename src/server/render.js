@@ -2,7 +2,14 @@ const SSR = require( 'vue-server-renderer');
 const serverBundle = require('../../dist/vue-ssr-server-bundle.json');
 const clientManifest = require('../../dist/client/vue-ssr-client-manifest.json');
 
-const renderer = SSR.createBundleRenderer(serverBundle, { clientManifest });
+const renderer = SSR.createBundleRenderer(serverBundle, {
+	clientManifest,
+	directives: {
+		value(vnode, directiveMeta){
+			vnode.data.attrs.value = directiveMeta.value;
+		}
+	}
+});
 
 /**
  * Find and render the Vue component, or return null

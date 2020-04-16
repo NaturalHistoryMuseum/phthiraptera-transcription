@@ -22,9 +22,19 @@
           @focus="selected = ix"
           @click="$event.target.focus()"
           :class="imgClass(ix)"
-          :tabindex="tabindex"></TImage>
+          :tabindex="tabindex"
+          @thumbnail="saveThumbnail(ix, $event)"></TImage>
       </div>
-      <Form class="Transcription__form" :token="records.token" :error="error" :scientificName="records.scientificName" :collections="collections" />
+      <Form class="Transcription__form"
+        :token="records.token"
+        :error="error"
+        :scientificName="records.scientificName"
+        :collections="collections"
+        :values="records.fields"
+        :barcodes="records.assets.map(r => r.barcode)"
+        :action="action"
+        :email="email"
+        :thumbnails="thumbnails"></Form>
     </template>
     <div v-else class="Transcription__finished">
       <h2>All records have been processed</h2>
@@ -44,10 +54,11 @@ export default {
   },
   data() {
     return {
-      selected: 0
+      selected: 0,
+      thumbnails: []
     }
   },
-  props: ['records', 'error', 'collections'],
+  props: ['records', 'error', 'collections', 'action', 'email'],
   computed: {
     /**
      * Get the grid size style for the current number of assets
@@ -88,6 +99,10 @@ export default {
     }
   },
   methods: {
+    saveThumbnail(index, dataUrl){
+      this.thumbnails.length = this.records.assets.length;
+      this.thumbnails.splice(index, 1, dataUrl);
+    },
     /**
      * Reset the position of all images
      */
