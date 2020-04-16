@@ -97,6 +97,7 @@ module.exports = {
     const barcode = data.barcode[0];
 
     data.country = data.country || '';
+    data.host_type = data.host_type || '';
     await validateTranscription(data);
 
     const collectors = mapCollectors(data);
@@ -263,50 +264,6 @@ module.exports = {
 
     return barcode;
   }),
-  nextAsset: connect(async (client, opts = {}) => {
-    const timeoutMins = getenv('TIMEOUT_MINS', '5');
-
-    const { rows } = opts.empty ? { rows: [] } : await client.query(`
-      SELECT images.*
-      FROM images
-        LEFT JOIN fields ON images.barcode = fields.barcode
-      WHERE images.asset_id IS NOT NULL
-        AND fields.barcode IS NULL
-        AND (
-          access_date IS NULL
-          OR access_date < NOW() - INTERVAL '${timeoutMins} minutes'
-        )
-      ORDER BY images.order;
-    `);
-
-    if (rows.length === 0) {
-      return null;
-    }
-
-    const multiple = opts.multiple && (/[23]/.test(opts.multiple) ? opts.multiple : '2')
-
-    const barcode = multiple ?
-      (rows.find(r => r.label === "image " + multiple)).barcode :
-      rows[0].barcode;
-
-    await client.query(sql`UPDATE images SET access_date=NOW() WHERE barcode=${barcode}`);
-
-    const assets = rows.filter(row => row.barcode === barcode);
-
-    const scientificName = await getScientificName(barcode);
-
-    const token = jwt.sign({barcode}, JWT_KEY, {
-      expiresIn: `${timeoutMins} minutes`
-    });
-
-    return {
-      scientificName,
-      assets,
-      token,
-      ...(await count).rows[0]
-    };
-  }),
-
   getAssets: connect(async (client, barcodes, editing) => {
     const { rows: assets } = await client.query(sql`
       SELECT * FROM images WHERE barcode = ANY(${barcodes})

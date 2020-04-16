@@ -6,7 +6,6 @@ const cookieParser = require('cookie-parser');
 
 // const auth = require('./auth');
 const render  = require('./render');
-const api = require('./api');
 const db = require('./api/database');
 const { release } = require('./api/database');
 const { ValidationError } = require('./validator');
@@ -28,19 +27,6 @@ app.post('/api/release', (req, res) => {
   res.sendStatus(204);
 })
 
-// app.use(auth(async (req, res) => {
-//   res.send(html({
-//     title: 'Phthiraptera Transcriptions',
-//     head: `
-//       <link rel="stylesheet" href="/index.css" />
-//       <link rel="stylesheet" href="/Login.css" />
-//     `,
-//     body: await login()
-//   }));
-// }));
-
-app.use('/api', api);
-
 const redirect = (req, res, loc) => {
   res.location(loc);
   if(req.accepts('html', 'json') !== 'json') {
@@ -49,7 +35,6 @@ const redirect = (req, res, loc) => {
 }
 
 // Handle form submission
-// Todo: Delete api/index
 app.post('/', async (req, res, next) => {
   try {
     if(req.body.user_email) {

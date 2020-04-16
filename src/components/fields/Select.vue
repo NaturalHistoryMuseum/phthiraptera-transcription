@@ -1,5 +1,5 @@
 <template>
-	<Field :value="value" :reset="reset">
+	<Field :value="value" :reset="reset" empty="">
 		<template v-slot:label>
 			<label class="Form__label" :for="name">
 				{{ label }}
