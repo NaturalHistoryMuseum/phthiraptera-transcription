@@ -39,6 +39,7 @@
     "sql-template-tag": "^3.3.0",
     "vue": "^2.6.11",
     "vue-hot-reload-api": "^2.3.4",
+    "vue-server-renderer": "^2.6.11",
     "vue-template-compiler": "^2.6.11"
   },
   "devDependencies": {
@@ -50,7 +51,6 @@
     "rimraf": "^3.0.2",
     "sass-loader": "^8.0.2",
     "vue-loader": "^15.9.1",
-    "vue-server-renderer": "^2.6.11",
     "webpack": "^4.42.1",
     "webpack-merge": "^4.2.2",
     "webpack-node-externals": "^1.7.2"
