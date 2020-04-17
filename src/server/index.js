@@ -19,7 +19,7 @@ app.set('query parser', q => new URLSearchParams(q));
 
 app.use(config.publicPath, express.static(path.resolve(config.outputPath)))
 app.use(express.static('src/data'))
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
 app.use(bodyParser.text());
 app.use(cookieParser());
 
