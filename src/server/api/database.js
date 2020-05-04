@@ -264,13 +264,13 @@ module.exports = {
 
     return barcode;
   }),
-  getAssets: connect(async (client, barcodes, editing) => {
+  getAssets: connect(async (client, barcodes, editing, copyFrom) => {
     const { rows: assets } = await client.query(sql`
       SELECT * FROM images WHERE barcode = ANY(${barcodes})
     `);
 
     const { rows: fields } = await client.query(sql`
-      SELECT * FROM fields WHERE barcode = ANY(${barcodes})
+      SELECT * FROM fields WHERE barcode = ANY(${[copyFrom, ...barcodes]})
     `);
 
     let scientificName;

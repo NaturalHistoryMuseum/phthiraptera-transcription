@@ -45,11 +45,12 @@ export default {
     // Todo: Determine newness based on existing db records
     const isNew = req.query.get('new');
     const barcodes = req.query.getAll('barcode');
+    const copyFrom = req.query.get('copy_from');
     const edit = !isNew && barcodes && barcodes.length;
 
     return {
       action: edit ? '/edit' : '/',
-      records: await api.getAssets(barcodes, edit),
+      records: await api.getAssets(barcodes, edit, copyFrom),
       collections: await api.getCollections(),
       email: req.cookies.email
     }
