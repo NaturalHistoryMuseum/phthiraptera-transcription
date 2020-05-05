@@ -25,6 +25,15 @@
           :tabindex="tabindex"
           @thumbnail="saveThumbnail(ix, $event)"></TImage>
       </div>
+      <div class="Transcription__form-info">
+        <h2 v-if="records.scientificName" class="Transcription__sciname">{{ records.scientificName }}</h2>
+        <div class="Transcription__warning" v-else>Could not get scientific name - is data portal down?</div>
+        <CopyFrom
+          :isNew="!records.fields.some(f => records.assets.some(a => a.barcode == f.barcode))"
+          :barcodes="records.assets.map(a => a.barcode)"
+          :copyFrom="records.fields.filter(f => !records.assets.map(a => a.barcode).some(a => f.barcode == a))">
+        </CopyFrom>
+      </div>
       <Form class="Transcription__form"
         :token="records.token"
         :error="error"
@@ -45,12 +54,14 @@
 
 <script>
 import Form from './Form.vue';
+import CopyFrom from './CopyFrom.vue';
 import TImage from './Image.vue';
 
 export default {
   components: {
     Form,
-    TImage
+    TImage,
+    CopyFrom
   },
   data() {
     return {
@@ -147,7 +158,7 @@ export default {
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: auto 1fr;
   grid-template-areas:
-    "info form"
+    "info form-info"
     "imgs form";
 }
 
@@ -197,6 +208,25 @@ export default {
 .Transcription__form {
   grid-area: form;
 }
+
+.Transcription__form-info {
+  grid-area: form-info;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+}
+
+.Transcription__sciname {
+  margin-bottom: 5px;
+}
+
+.Transcription__warning {
+  padding: 1em 0.5em;
+  color: #999;
+  font-weight: bold;
+  font-style: italic;
+}
+
 
 @media(orientation: portrait) {
   .Transcription {

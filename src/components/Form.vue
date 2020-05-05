@@ -4,8 +4,6 @@
     <input type="hidden" name="thumbnail[]" v-for="thumbnail in thumbnails" :key="thumbnail" :value="thumbnail" />
     <input type="hidden" name="sciName" :value="scientificName" />
     <Dialog></Dialog>
-    <h2 v-if="scientificName" class="Form__sciname">{{ scientificName }}</h2>
-    <div class="Form__warning" v-else>Could not get scientific name - is data portal down?</div>
     <div class="Form__wrapper">
       <input type="hidden" name="token" :value="token">
       <div class="Form__columns">
@@ -385,10 +383,6 @@ export default {
   flex-direction: column;
 }
 
-.Form__sciname {
-  margin-bottom: 5px;
-}
-
 .Form legend {
   float: left;
   width: 100%;
@@ -428,13 +422,6 @@ export default {
 .Form__wrapper {
   overflow-y: auto;
   flex: 1;
-}
-
-.Form__warning {
-  padding: 1em 0.5em;
-  color: #999;
-  font-weight: bold;
-  font-style: italic;
 }
 
 .Form__label {
