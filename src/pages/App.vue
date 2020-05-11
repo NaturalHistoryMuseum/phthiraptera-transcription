@@ -1,6 +1,6 @@
 <template>
   <AppWrapper class="App__wrapper">
-    <Transcription class="App__transcription" :records="recordState" :collections="collections" :action="action" :email="email"></Transcription>
+    <Transcription class="App__transcription" :records="recordState" :collections="collections" :action="action" :email="email" :recent="recent"></Transcription>
     <div class="App__progress">
       <div class="App__progress-label">{{ records.completed }}/{{ records.total }}</div>
       <progress :max="records.total" :value="records.completed" class="App__progress-bar"></progress>
@@ -37,7 +37,7 @@ export default {
     eventBus
   },
   name: 'app',
-  props: ['records', 'collections', 'action', 'email'],
+  props: ['records', 'collections', 'action', 'email', 'recent'],
   /**
    * Load data from the API endpoint
    */
@@ -47,12 +47,14 @@ export default {
     const barcodes = req.query.getAll('barcode');
     const copyFrom = req.query.get('copy_from');
     const edit = !isNew && barcodes && barcodes.length;
+    const recent = await api.getRecent();
 
     return {
       action: edit ? '/edit' : '/',
       records: await api.getAssets(barcodes, edit, copyFrom),
       collections: await api.getCollections(),
-      email: req.cookies.email
+      email: req.cookies.email,
+      recent
     }
   }
 }

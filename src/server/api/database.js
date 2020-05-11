@@ -347,6 +347,17 @@ module.exports = {
     }
   ),
 
+  /**
+   * Get the name and barcode of the 5 most recent entries
+   */
+  getRecent: connect(
+    async client => {
+      const select = sql`SELECT fields.barcode, info.sciname FROM fields LEFT JOIN info ON (info.barcode = fields.barcode) ORDER BY fields.date DESC NULLS LAST LIMIT 5`;
+      const { rows } = await client.query(select);
+      return rows;
+    }
+  ),
+
   release: connect(async (client, token) => {
     try {
       // const { barcode } = jwt.verify(token, JWT_KEY);

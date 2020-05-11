@@ -5,8 +5,12 @@
 		<button class="CopyFrom__button">Copy from</button>
 		<select class="CopyFrom__select" name="copy_from">
 			<option value="">[Clear]</option>
-			<option v-for="barcode in copyFrom" :key="barcode">
-				{{ barcode }}
+			<option
+				v-for="(item, ix) in copyFrom"
+				:key="item.barcode"
+				:value="item.barcode"
+				:selected="ix == 0">
+				{{ item.sciname }}
 			</option>
 		</select>
 	</form>

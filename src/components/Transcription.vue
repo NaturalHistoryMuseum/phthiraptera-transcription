@@ -31,7 +31,7 @@
         <CopyFrom
           :isNew="!records.fields.some(f => records.assets.some(a => a.barcode == f.barcode))"
           :barcodes="records.assets.map(a => a.barcode)"
-          :copyFrom="records.fields.filter(f => !records.assets.map(a => a.barcode).some(a => f.barcode == a))">
+          :copyFrom="recent">
         </CopyFrom>
       </div>
       <Form class="Transcription__form"
@@ -69,7 +69,7 @@ export default {
       thumbnails: []
     }
   },
-  props: ['records', 'error', 'collections', 'action', 'email'],
+  props: ['records', 'error', 'collections', 'action', 'email', 'recent'],
   computed: {
     /**
      * Get the grid size style for the current number of assets
