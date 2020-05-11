@@ -20,7 +20,18 @@
               </datalist>
               <label class="Form__label">
                 Host (if not in list)
-                <input class="Form__input" name="host_other" id="host_other" @change="vModel.value = $event.target.value" :value="!hosts.includes(vModel.value) ? vModel.value : ''">
+                <Suggest
+                  name="precise_locality"
+                  :suggestions="suggestions.host"
+                  v-slot="{ listId }">
+                  <input
+                    class="Form__input"
+                    name="host_other"
+                    id="host_other"
+                    @change="vModel.value = $event.target.value"
+                    :value="!hosts.includes(vModel.value) ? vModel.value : ''"
+                    :list="listId">
+                </Suggest>
               </label>
             </fieldset>
           </Field>
@@ -47,7 +58,12 @@
             <option selected></option>
             <option v-for="country in countries" :key="country">{{ country }}</option>
           </Select>
-          <Input :reset="showReset" label="Precise locality" name="precise_locality" :value="fields.precise_locality"></Input>
+          <Suggest
+            :reset="showReset"
+            label="Precise locality"
+            name="precise_locality"
+            :value="fields.precise_locality"
+            :suggestions="suggestions.preciseLocality"></Suggest>
         </fieldset>
         <fieldset class="Form__fieldset">
           <legend>Collector(s)</legend>
@@ -66,10 +82,12 @@
               <button @click="addCollector(vModel)" type="button" class="Form__button">+</button>
             </fieldset>
           </Field>
-          <Input :reset="showReset" label="Institution or collection" name="collection" list="collections" :value="fields.collection"></Input>
-          <datalist id="collections">
-            <option v-for="c in collections" :key="c">{{ c }}</option>
-          </datalist>
+          <Suggest
+            :reset="showReset"
+            label="Institution or collection"
+            name="collection"
+            :value="fields.collection"
+            :suggestions="suggestions.collection"></Suggest>
         </fieldset>
         <fieldset class="Form__fieldset">
           <legend>Collection Date</legend>
@@ -177,6 +195,7 @@ import { getCountries, localities, getHosts, typeStatuses, hostTypes } from './f
 import Field from './Field';
 import Select from './fields/Select';
 import Input from './fields/Input';
+import Suggest from './fields/Suggest';
 
 const lifeStages = {
   adult_female: 'adult female(s)',
@@ -190,9 +209,10 @@ export default {
     Dialog,
     Field,
     Select,
-    Input
+    Input,
+    Suggest
   },
-  props: ['token', 'scientificName', 'collections', 'values', 'barcodes', 'thumbnails', 'action', 'email'],
+  props: ['token', 'scientificName', 'suggestions', 'values', 'barcodes', 'thumbnails', 'action', 'email'],
   inject: ['eventBus'],
   data: () => ({
     countries: [],

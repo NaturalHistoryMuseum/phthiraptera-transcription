@@ -38,7 +38,7 @@
         :token="records.token"
         :error="error"
         :scientificName="records.scientificName"
-        :collections="collections"
+        :suggestions="suggestions"
         :values="records.fields"
         :barcodes="records.assets.map(r => r.barcode)"
         :action="action"
@@ -69,7 +69,7 @@ export default {
       thumbnails: []
     }
   },
-  props: ['records', 'error', 'collections', 'action', 'email', 'recent'],
+  props: ['records', 'error', 'suggestions', 'action', 'email', 'recent'],
   computed: {
     /**
      * Get the grid size style for the current number of assets

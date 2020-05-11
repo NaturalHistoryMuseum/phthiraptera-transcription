@@ -5,7 +5,7 @@ const countries = require('../../data/countries.json');
 const validator = require('../validator');
 const getenv = require('getenv');
 const axios = require('axios')
-const { default: sql, join, raw } = require('sql-template-tag')
+const { default: sql, join, raw, empty } = require('sql-template-tag')
 const hosts = require('../../data/hosts.json');
 
 const JWT_KEY = getenv('JWT_KEY', 'IJQLX9J9DU8Q');
@@ -90,6 +90,21 @@ function validateTranscription(data, ignoreEmpty) {
   if(c('notes')) validate(data.notes.length <= 255, 'Explanation must be 255 characters or less')
 
   return validate.throw();
+}
+
+/**
+ * Select distinct transcription values for a given row
+ * @param {Client} client Postgres client
+ * @param {string} field Field name
+ * @param {Sql} where Sql query for adding to the end of where clause
+ */
+async function selectDistinct(client, field, where=empty){
+  console.log(where);
+  const fieldname = raw(field);
+  const select = sql`SELECT DISTINCT ${fieldname} from fields WHERE ${fieldname} is not null and ${fieldname} != '' ${where}`;
+  console.log(select);
+  const { rows } = await client.query(select);
+  return rows.map(c => c[field]);
 }
 
 module.exports = {
@@ -305,12 +320,15 @@ module.exports = {
   ),
 
   /**
-   * Get a list of values previously entered into the collections field
+   * Get a list of values previously entered into various fields
    */
-  getCollections: connect(
+  getSuggestions: connect(
     async client => {
-      const { rows } = await client.query(sql`SELECT DISTINCT collection from fields where collection is not null and collection != ''`);
-      return rows.map(c => c.collection);
+      return {
+        collection: await selectDistinct(client, 'collection'),
+        preciseLocality: await selectDistinct(client, 'precise_locality'),
+        host: await selectDistinct(client, 'host', sql`AND host != ALL(${hosts})`)
+      }
     }
   ),
 
