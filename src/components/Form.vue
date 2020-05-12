@@ -176,13 +176,6 @@
 
     <div class="Form__footer">
       <div class="Form__controls">
-        <label class="Form__label Form__control">Email:
-          <input type="email" name="user_email" :value="email" class="Form__email" required>
-        </label>
-        <Tooltip>
-          <b>Data Protection</b><br>
-          The Natural History Museum will use your personal data in accordance with data protection legislation to process your requests. For more information please read our <a href="http://www.nhm.ac.uk/about-us/privacy-notice.html">privacy notice</a>.
-        </Tooltip>
         <button class="Form__submit Form__button">Submit</button>
       </div>
     </div>

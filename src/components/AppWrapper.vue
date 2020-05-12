@@ -3,7 +3,10 @@
     <nav class="AppWrapper__nav">
       <a href="/" class="AppWrapper__home"><img :src="$options.logo" height="24"></a>
       <div>Phthiraptera Transcription</div>
-      <a class="AppWrapper__link" href="/browse">Browse Completed</a>
+      <div class="AppWrapper__items">
+        <a href="/browse">Browse Completed</a>
+        <div>Paul Kiddle <small>[<a href="#">Log out</a>]</small></div>
+      </div>
     </nav>
 
     <slot class="AppWrapper__content"></slot>
@@ -54,8 +57,18 @@ html, body {
   margin: 0;
 }
 
-.AppWrapper__link {
+.AppWrapper__items a {
   color: #FDD;
+}
+
+.AppWrapper__items {
+  margin: -5px;
   margin-left: auto;
+  display: flex;
+  align-self: center;
+}
+
+.AppWrapper__items > * {
+  margin: 5px;
 }
 </style>

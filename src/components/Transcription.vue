@@ -217,6 +217,7 @@ export default {
 }
 
 .Transcription__sciname {
+  margin-top: 15px;
   margin-bottom: 5px;
 }
 

@@ -73,6 +73,7 @@ export default {
   display: grid;
   flex-grow: 0;
   flex-shrink: 1;
+  height: 35px;
 }
 
 .App__progress-label {
