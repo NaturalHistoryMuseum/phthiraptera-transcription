@@ -1,5 +1,4 @@
 const { Pool, types } = require('pg');
-const jwt = require('jsonwebtoken');
 const { localities: localityMap, typeStatuses, hostTypes } = require('../../data/form.json');
 const countries = require('../../data/countries.json');
 const validator = require('../validator');
@@ -8,7 +7,6 @@ const axios = require('axios')
 const { default: sql, join, raw, empty } = require('sql-template-tag')
 const hosts = require('../../data/hosts.json');
 
-const JWT_KEY = getenv('JWT_KEY', 'IJQLX9J9DU8Q');
 const localities = Object.keys(localityMap);
 
 // Output the DATE type as just a tex string
@@ -84,8 +82,6 @@ function validateTranscription(data, ignoreEmpty) {
   }
   if(c('total_count')) validate(!data.total_count ||  data.total_count > 0, `Total count must be > 0 or empty`)
 
-  validate(!!data.user_email, 'User email must not be empty.')
-
   if(c('collector_surnames')) validate(mapCollectors(data).every(c => c.surname), `Add surname to all collectors`)
   if(c('notes')) validate(data.notes.length <= 255, 'Explanation must be 255 characters or less')
 
@@ -99,16 +95,19 @@ function validateTranscription(data, ignoreEmpty) {
  * @param {Sql} where Sql query for adding to the end of where clause
  */
 async function selectDistinct(client, field, where=empty){
-  console.log(where);
   const fieldname = raw(field);
   const select = sql`SELECT DISTINCT ${fieldname} from fields WHERE ${fieldname} is not null and ${fieldname} != '' ${where}`;
-  console.log(select);
   const { rows } = await client.query(select);
   return rows.map(c => c[field]);
 }
 
 module.exports = {
-  saveTranscription: connect(async (client, data) => {
+  /**
+   * Add a new transcription to the database
+   * @param data A map of the data to add
+   * @param user The user who added the data
+   */
+  saveTranscription: connect(async (client, data, user) => {
     const barcode = data.barcode[0];
 
     data.country = data.country || '';
@@ -119,6 +118,7 @@ module.exports = {
 
     const stage = data.stage || [];
     const host = data.host || data.host_other;
+    const orcid = user.orcid;
 
     await (client.query(sql`
       INSERT INTO info (barcode, thumbnails, sciName)
@@ -148,10 +148,11 @@ module.exports = {
         adult_female,
         adult_male,
         nymph,
-        user_email,
         requires_verification,
         notes,
-        date
+        date,
+        transcriber_id,
+        transcriber_name
       )
       VALUES(
         ${barcode},
@@ -172,13 +173,19 @@ module.exports = {
         ${!!stage.includes('adult female(s)')},
         ${!!stage.includes('adult male(s)')},
         ${!!stage.includes('nymph(s)')},
-        ${data.user_email},
         ${!!data.requires_verification},
         ${data.notes},
-        NOW()
+        NOW(),
+        ${orcid},
+        ${user.name}
       );`)
   }),
-  updateTranscriptions: connect(async (client, data) => {
+  /**
+   * Update an existing transcription
+   * @param data A map of the data to add
+   * @param user The user who did the update
+   */
+  updateTranscriptions: connect(async (client, data, user) => {
     const barcodes = data.barcode;
 
     await validateTranscription(data, true);
@@ -202,7 +209,6 @@ module.exports = {
         'type_statuses',
         'registration_number',
         'total_count',
-        'user_email',
         'requires_verification',
         'notes'
       ].map(k => [k ,k])),
@@ -239,16 +245,18 @@ module.exports = {
       adult_female: !!stage.includes('adult female(s)'),
       adult_male: !!stage.includes('adult male(s)'),
       nymph: !!stage.includes('nymph(s)'),
-      user_email: data.user_email,
       requires_verification: !!data.requires_verification,
       notes: data.notes,
     };
 
     const q = sql`
       UPDATE fields
-      SET ${join(sqlFields.map(field => sql`
-        ${raw(field)} = ${values[field]}`
-      ))}
+      SET
+        ${join(sqlFields.map(field => sql`
+          ${raw(field)} = ${values[field]}`
+        ))},
+        transcriber_id = ${user.orcid},
+        transcriber_name = ${user.name}
       WHERE barcode = ANY(${barcodes})
     `;
 
@@ -373,6 +381,19 @@ module.exports = {
       const select = sql`SELECT fields.barcode, info.sciname FROM fields LEFT JOIN info ON (info.barcode = fields.barcode) ORDER BY fields.date DESC NULLS LAST LIMIT 5`;
       const { rows } = await client.query(select);
       return rows;
+    }
+  ),
+
+  /**
+   * Update all records whose transcriber email matches the given email,
+   * and set the transcriber_* fields to the given user
+   * @param {string} email The email address to search for
+   * @param {object} user The user details to assign
+   */
+  updateTranscriber: connect(
+    async (client, email, user) => {
+      const orcid = user.orcid;
+      await client.query(`UPDATE fields SET transcriber_name=${user.name}, transcriber_id=${orcid} WHERE user_email=${email}`);
     }
   ),
 

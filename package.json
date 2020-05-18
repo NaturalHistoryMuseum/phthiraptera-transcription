@@ -6,8 +6,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "hash": "node hash.js",
-    "parcel": "parcel",
     "heroku-postbuild": "node build/index.js"
   },
   "author": "Natural History Museum",
@@ -27,7 +25,6 @@
     "axios": "^0.18.1",
     "babel-core": "^6.26.3",
     "babel-preset-env": "^1.7.0",
-    "bcrypt": "^3.0.8",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
     "csv-stringify": "^5.3.6",
@@ -40,6 +37,7 @@
     "pg-connection-string": "^2.2.0",
     "postgres-migrations": "github:paulkiddle/postgres-migrations",
     "recursive-iterator": "^3.3.0",
+    "simple-oauth2": "^3.4.0",
     "sql-template-tag": "^3.3.0",
     "vue": "^2.6.11",
     "vue-hot-reload-api": "^2.3.4",
@@ -52,6 +50,7 @@
     "mini-css-extract-plugin": "^0.9.0",
     "node-sass": "^4.13.1",
     "null-loader": "^3.0.0",
+    "oauth2-mock-server": "^1.5.1",
     "rimraf": "^3.0.2",
     "sass-loader": "^8.0.2",
     "vue-loader": "^15.9.1",

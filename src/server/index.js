@@ -4,14 +4,16 @@ const toCSV = require('csv-stringify')
 const RecursiveIterator = require('recursive-iterator');
 const cookieParser = require('cookie-parser');
 const path = require('path');
-
-// const auth = require('./auth');
+const getenv = require('getenv');
+const { orcid } = require('./api');
 const render  = require('./render');
 const db = require('./api/database');
 const { release } = require('./api/database');
 const { ValidationError } = require('./validator');
+const auth = require('./routes/auth');
 const config = require('../../package.json').config;
 
+const port = getenv('PORT', '1234');
 const { saveTranscription, readData, updateTranscriptions, getNextBarcode } = db;
 const app = express();
 
@@ -35,13 +37,12 @@ const redirect = (req, res, loc) => {
   }
 }
 
+app.use(auth);
+
 // Handle form submission
 app.post('/', async (req, res, next) => {
   try {
-    if(req.body.user_email) {
-      res.cookie('email', req.body.user_email, { maxAge: 900000 });
-    }
-    await saveTranscription(req.body);
+    await saveTranscription(req.body, req.user);
   } catch(e) {
     next(e);
     return;
@@ -53,7 +54,7 @@ app.post('/', async (req, res, next) => {
 
 app.post('/edit', async (req, res, next) => {
   try {
-    await updateTranscriptions(req.body);
+    await updateTranscriptions(req.body, req.user);
   } catch(e) {
     next(e);
     return;
@@ -104,7 +105,12 @@ app.use((error, req, res, next) => {
 app.get('*', async (req, res, next) => {
   try {
     const url = req.path;
-    const page = await render(url, async Component => Component.loadData ? await Component.loadData(db, req) : null, 'Phthiraptera Transcriptions');
+    const misc = {
+      get oauthUrl() {
+        return orcid.getAuthUrl();
+      }
+    };
+    const page = await render(url, async Component => Component.loadData ? await Component.loadData(db, req, misc) : null, 'Phthiraptera Transcriptions');
 
     if(!page) {
       next();
@@ -188,8 +194,6 @@ app.get('/csv', async (req, res, next) => {
 app.use((req, res) => {
   res.status(404).send('File not found');
 });
-
-const port = process.env.PORT || 1234;
 
 app.listen(port, () => {
   console.log('Listening on http://localhost:' + port)

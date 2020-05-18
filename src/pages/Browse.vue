@@ -1,5 +1,5 @@
 <template>
-	<AppWrapper>
+	<AppWrapper :user="user">
 		<div>Browse transcriptions</div><form ref="form" action="/">
 		<select multiple v-model="fields">
 		<option v-for="col in Object.keys(records[0])" :key="col" :value="col">{{ col }}</option>
@@ -55,7 +55,7 @@ export default {
 			mounted: false
 		}
 	},
-	props: ['records', 'offset', 'limit'],
+	props: ['records', 'offset', 'limit', 'user'],
 	methods: {
 		imgUrl(assetId) {
 			return `/asset/${assetId}`;
@@ -112,7 +112,8 @@ export default {
 				offset
 			}),
 			limit,
-			offset
+			offset,
+			user: req.user
     }
   }
 };

@@ -1,5 +1,5 @@
 <template>
-  <AppWrapper class="App__wrapper">
+  <AppWrapper class="App__wrapper" :user="user">
     <Transcription class="App__transcription" :records="recordState" :suggestions="suggestions" :action="action" :email="email" :recent="recent"></Transcription>
     <div class="App__progress">
       <div class="App__progress-label">{{ records.completed }}/{{ records.total }}</div>
@@ -37,7 +37,7 @@ export default {
     eventBus
   },
   name: 'app',
-  props: ['records', 'suggestions', 'action', 'email', 'recent'],
+  props: ['records', 'suggestions', 'action', 'email', 'recent', 'user'],
   /**
    * Load data from the API endpoint
    */
@@ -53,8 +53,8 @@ export default {
       action: edit ? '/edit' : '/',
       records: await api.getAssets(barcodes, edit, copyFrom),
       suggestions: await api.getSuggestions(),
-      email: req.cookies.email,
-      recent
+      recent,
+      user: req.user
     }
   }
 }

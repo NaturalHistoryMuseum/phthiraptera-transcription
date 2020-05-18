@@ -3,9 +3,9 @@
     <nav class="AppWrapper__nav">
       <a href="/" class="AppWrapper__home"><img :src="$options.logo" height="24"></a>
       <div>Phthiraptera Transcription</div>
-      <div class="AppWrapper__items">
-        <a href="/browse">Browse Completed</a>
-        <div>Paul Kiddle <small>[<a href="#">Log out</a>]</small></div>
+      <div class="AppWrapper__items" v-if="user">
+        <a href="/browse">Browse Completed</a> |
+        <div><a :href="user.orcid">{{ user.name }}</a> <small>[<a href="/logout">Log out</a>]</small></div>
       </div>
     </nav>
 
@@ -18,7 +18,8 @@ import logo from './nhm.png';
 
 export default {
   logo,
-  name: 'appwrapper'
+  name: 'appwrapper',
+  props: ['user']
 }
 </script>
 
