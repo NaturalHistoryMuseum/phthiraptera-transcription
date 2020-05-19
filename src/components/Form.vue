@@ -14,14 +14,22 @@
               <div class="Form__label">
                 <label for="host">Host</label><Tooltip>To search, type <em>species, Genus</em> and select from the list - e.g. <em>bufo, Bufo</em>.</Tooltip>
               </div>
-              <input class="Form__input" name="host" id="host" list="hosts" @change="vModel.value = $event.target.value" :value="hosts.includes(vModel.value) ? vModel.value : ''">
-              <datalist id="hosts">
-                <option v-for="host in hosts" :key="host">{{ host }}</option>
-              </datalist>
+              <Suggest
+                name="host"
+                :suggestions="hosts"
+                v-slot="{ listId }">
+                <input
+                  class="Form__input"
+                  name="host"
+                  id="host"
+                  @change="vModel.value = $event.target.value"
+                  :value="hosts.includes(vModel.value) ? vModel.value : ''"
+                  :list="listId">
+              </Suggest>
               <label class="Form__label">
                 Host (if not in list)
                 <Suggest
-                  name="precise_locality"
+                  name="host_other"
                   :suggestions="suggestions.host"
                   v-slot="{ listId }">
                   <input
