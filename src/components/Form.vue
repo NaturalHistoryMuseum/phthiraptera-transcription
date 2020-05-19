@@ -213,7 +213,7 @@ export default {
     Input,
     Suggest
   },
-  props: ['token', 'scientificName', 'suggestions', 'values', 'barcodes', 'thumbnails', 'action', 'email'],
+  props: ['token', 'scientificName', 'suggestions', 'values', 'barcodes', 'thumbnails', 'action'],
   inject: ['eventBus'],
   data: () => ({
     countries: [],

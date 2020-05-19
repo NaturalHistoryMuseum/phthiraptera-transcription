@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Form renders 1`] = `
+"<form method=\\"POST\\" action=\\"\\" class=\\"Form\\"> <input type=\\"hidden\\" name=\\"sciName\\" value=\\"Sci name\\">
+  <dialog-stub></dialog-stub>
+  <div class=\\"Form__wrapper\\"><input type=\\"hidden\\" name=\\"token\\" value=\\"abc\\">
+    <div class=\\"Form__columns\\">
+      <fieldset class=\\"Form__fieldset\\">
+        <legend>Host</legend>
+        <field-stub class=\\"Form__float-reset\\"></field-stub>
+        <select-stub label=\\"Host type\\" name=\\"host_type\\">
+          <option value=\\"No host\\">No host</option>
+          <optgroup label=\\"Host present\\">
+            <option value=\\"\\">Host present</option>
+            <option value=\\"Skin\\">Skin</option>
+            <option value=\\"Straggler / questionable host\\">Straggler / questionable host</option>
+            <option value=\\"Other (nest, clothing etc)\\">Other (nest, clothing etc)</option>
+          </optgroup>
+        </select-stub>
+      </fieldset>
+      <fieldset class=\\"Form__fieldset\\">
+        <legend>Locality</legend>
+        <field-stub empty=\\"Real\\"></field-stub>
+        <select-stub label=\\"Country\\" name=\\"country\\">
+          <option selected=\\"selected\\"></option>
+        </select-stub>
+        <suggest-stub name=\\"precise_locality\\" label=\\"Precise locality\\"></suggest-stub>
+      </fieldset>
+      <fieldset class=\\"Form__fieldset\\">
+        <legend>Collector(s)</legend>
+        <field-stub value=\\"[object Object]\\" class=\\"Form__float-reset\\"></field-stub>
+        <suggest-stub name=\\"collection\\" label=\\"Institution or collection\\"></suggest-stub>
+      </fieldset>
+      <fieldset class=\\"Form__fieldset\\">
+        <legend>Collection Date</legend>
+        <field-stub value=\\"[object Object]\\"></field-stub>
+      </fieldset>
+      <fieldset class=\\"Form__fieldset\\">
+        <legend>Registration Number</legend>
+        <input-stub name=\\"registration_number\\">
+          <div class=\\"Form__label\\"><label for=\\"registration_number\\">
+              BM number
+            </label>
+            <tooltip-stub>e.g. <em>BM 1980-1</em></tooltip-stub>
+          </div>
+        </input-stub>
+      </fieldset>
+      <fieldset class=\\"Form__fieldset\\">
+        <legend>Type Status</legend>
+        <field-stub empty=\\"\\"></field-stub>
+      </fieldset>
+      <fieldset class=\\"Form__fieldset\\">
+        <legend>Sex/Stage</legend>
+        <input-stub label=\\"Total number of specimens\\" name=\\"total_count\\" type=\\"number\\"></input-stub>
+        <field-stub empty=\\"\\" value=\\"\\"></field-stub>
+      </fieldset>
+      <fieldset class=\\"Form__fieldset\\">
+        <legend>Other</legend>
+        <field-stub></field-stub>
+        <field-stub></field-stub>
+      </fieldset>
+      <!---->
+    </div>
+  </div>
+  <div class=\\"Form__footer\\">
+    <div class=\\"Form__controls\\"><button class=\\"Form__submit Form__button\\">Submit</button></div>
+  </div>
+</form>"
+`;
