@@ -19,6 +19,7 @@
                 :suggestions="hosts"
                 v-slot="{ listId }">
                 <input
+                  autofocus
                   class="Form__input"
                   name="host"
                   id="host"
