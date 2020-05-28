@@ -185,8 +185,9 @@ export default {
 }
 
 .Transcription__images > * {
-  max-width: 100%;
-  max-height: 100%;
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
 }
 
 .Transcription__image--selected {
