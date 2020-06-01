@@ -2,7 +2,7 @@
 	<AppWrapper :user="user">
 		<div>Browse transcriptions</div><form ref="form" action="/">
 		<select multiple v-model="fields">
-		<option v-for="col in Object.keys(records[0])" :key="col" :value="col">{{ col }}</option>
+		<option v-for="col in Object.keys(records[0] || {})" :key="col" :value="col">{{ col }}</option>
 		</select>
 		<table>
 			<thead>

@@ -9,6 +9,8 @@ const hosts = require('../../data/hosts.json');
 
 const localities = Object.keys(localityMap);
 
+const DATE_MATCH = /^(?:([0-9]{4})|--)(?:(?:(?:\b-)?([0-9]{2})|-)([0-9]{2})?)?$/;
+
 // Output the DATE type as just a tex string
 types.setTypeParser( 1082, 'text', v => v);
 
@@ -84,6 +86,16 @@ function validateTranscription(data, ignoreEmpty) {
 
   if(c('collector_surnames')) validate(mapCollectors(data).every(c => c.surname), `Add surname to all collectors`)
   if(c('notes')) validate(data.notes.length <= 255, 'Explanation must be 255 characters or less')
+  if(c('collection_date.end')) {
+    const match = data['collection_date.end'].match(DATE_MATCH);
+
+    if(match) {
+      const [, year, month, day] = match;
+      validate(!(!!year && !!day && !month), 'If collection end date includes year and day, it must also include month.');
+    } else {
+      validate(false, 'Invalid end date ' + data['collection_date.end']);
+    }
+  }
 
   return validate.throw();
 }
@@ -140,6 +152,7 @@ module.exports = {
         collection_month,
         collection_day,
         collection_range,
+        collection_date_end,
         collectors,
         collection,
         type_statuses,
@@ -161,10 +174,11 @@ module.exports = {
         ${data.precise_locality},
         ${host},
         ${data.host_type},
-        ${data.collection_year},
-        ${data.collection_month},
-        ${data.collection_day},
-        ${!!data.collection_range},
+        ${data['collection_date.year']},
+        ${data['collection_date.month']},
+        ${data['collection_date.day']},
+        ${!!data['collection_date.end']},
+        ${data['collection_date.end']},
         ${JSON.stringify(collectors)},
         ${data.collection},
         ${JSON.stringify((data.type_statuses || []).filter(Boolean))},
@@ -201,10 +215,6 @@ module.exports = {
         'country',
         'precise_locality',
         'host_type',
-        'collection_year',
-        'collection_month',
-        'collection_day',
-        'collection_range',
         'collection',
         'type_statuses',
         'registration_number',
@@ -212,6 +222,11 @@ module.exports = {
         'requires_verification',
         'notes'
       ].map(k => [k ,k])),
+      collection_year: 'collection_date.year',
+      collection_month: 'collection_date.month',
+      collection_day: 'collection_date.day',
+      collection_date_end: 'collection_date.end',
+      collection_range: 'collection_date.end',
       host: ['host', 'host_other'],
       collectors: ['collector_surnames','collector_initials'],
       adult_female: 'stage',
@@ -233,10 +248,11 @@ module.exports = {
       precise_locality: data.precise_locality,
       host: host,
       host_type: data.host_type,
-      collection_year: data.collection_year,
-      collection_month: data.collection_month,
-      collection_day: data.collection_day,
-      collection_range: !!data.collection_range,
+      collection_year: data['collection_date.year'],
+      collection_month: data['collection_date.month'],
+      collection_day: data['collection_date.day'],
+      collection_date_end: data['collection_date.end'],
+      collection_range: !!data['collection_date.end'],
       collectors: JSON.stringify(collectors),
       collection: data.collection,
       type_statuses: JSON.stringify((data.type_statuses || []).filter(Boolean)),

@@ -86,14 +86,15 @@
       "src/**/*.(js|vue)"
     ],
     "coverageReporters": [
+      "text",
       "json-summary"
     ],
     "coverageThreshold": {
       "global": {
-        "lines": 23.85,
-        "statements": 24.69,
-        "functions": 27.17,
-        "branches": 15.89
+        "lines": 34.85,
+        "statements": 35.52,
+        "functions": 29.41,
+        "branches": 24.18
       }
     }
   }

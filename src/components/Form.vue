@@ -99,26 +99,13 @@
             :suggestions="suggestions.collection"></Suggest>
         </fieldset>
         <fieldset class="Form__fieldset">
-          <legend>Collection Date</legend>
+          <legend>Collection Date <Tooltip>You can enter the start (and end) date in any combination of year, month and day (including numerals for month). E.g. <i>1888-06-25</i>, <i>ix/1916</i>, <i>Jan 1950</i></Tooltip></legend>
           <Field :reset="showReset" :value="defaultDate">
-            <template v-slot:label>
-              <label class="Form__label" for="collection_day">
-                Date <Tooltip>Formatted as dd-mm-yyyy</Tooltip>
-              </label>
-            </template>
             <template v-slot:default="{ vModel, disabled }">
               <fieldset class="Form__input-group" :disabled="disabled">
-                <input v-model="vModel.value && vModel.value.day" type="number" placeholder="dd" min="1" max="31" name="collection_day" id="collection_day">
-                <input v-model="vModel.value && vModel.value.month" type="number" placeholder="mm" min="1" max="12" name="collection_month">
-                <input v-model="vModel.value && vModel.value.year" type="number" placeholder="yyyy" name="collection_year">
+                <label><div class="Form__label">Start Date</div><Date class="Form__input" name="collection_date" :value="vModel.value.start" @input="vModel.value.start=$event"></Date></label>
+                <label><div class="Form__label">End Date</div><Date class="Form__input" name="collection_date.end" :value="vModel.value.end" @input="vModel.value.end=$event.iso"></Date></label>
               </fieldset>
-              <div class="Form__radioset">
-                <label class="Form__checkbutton">
-                  <input type="checkbox" name="collection_range" value="1" v-model="vModel.value && vModel.value.range">
-                  <input type="hidden" name="collection_range" value="" v-if="!disabled && !(vModel.value && vModel.value.range)">
-                  Date range
-                </label>
-              </div>
             </template>
           </Field>
         </fieldset>
@@ -138,7 +125,7 @@
           <Field :reset="showReset" :value="fields.type_statuses" :empty="[]" v-slot="{ vModel, disabled }">
             <fieldset class="Form__radioset" :disabled="disabled">
               <label v-for="status in typeStatuses" :key="status" class="Form__checkbutton">
-                <input type="checkbox" name="type_statuses[]" :value="status" v-model="vModel.value">{{ status }}
+                <input type="checkbox" name="type_statuses[]" :value="status" v-model="vModel.value">{{ status.replace('*', '') }}
               </label>
               <input type="hidden" name="type_statuses[]" value="" v-if="!disabled && vModel.value && (vModel.value.length === 0)">
             </fieldset>
@@ -198,6 +185,7 @@ import Field from './Field';
 import Select from './fields/Select';
 import Input from './fields/Input';
 import Suggest from './fields/Suggest';
+import Date from './fields/Date';
 
 const lifeStages = {
   adult_female: 'adult female(s)',
@@ -212,7 +200,8 @@ export default {
     Field,
     Select,
     Input,
-    Suggest
+    Suggest,
+    Date
   },
   props: ['token', 'scientificName', 'suggestions', 'values', 'barcodes', 'thumbnails', 'action'],
   inject: ['eventBus'],
@@ -373,10 +362,12 @@ export default {
     },
     defaultDate(){
       const date = {
-        day: this.fields.collection_day,
-        month: this.fields.collection_month,
-        year: this.fields.collection_year,
-        range: this.fields.collection_range
+        start: {
+          day: this.fields.collection_day,
+          month: this.fields.collection_month,
+          year: this.fields.collection_year
+        },
+        end: this.fields.collection_date_end
       };
 
       return Object.values(date).includes(Field.multiple) ? Field.multiple : date;
@@ -463,7 +454,7 @@ export default {
   page-break-inside: avoid; /* Firefox */
   break-inside: avoid;
   margin-bottom: 5px;
-  padding-bottom: 5px;
+  padding: 5px 12px;
   background: #EEF;
   border-color: #CCF;
 }
@@ -563,13 +554,5 @@ export default {
 .Form__info {
   display: block;
   font-weight: normal;
-}
-
-[name="collection_day"], [name="collection_month"] {
-  width: 25%;
-}
-
-[name="collection_year"] {
-  width: 45%;
 }
 </style>
