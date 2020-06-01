@@ -93,7 +93,7 @@ function validateTranscription(data, ignoreEmpty) {
       const [, year, month, day] = match;
       validate(!(!!year && !!day && !month), 'If collection end date includes year and day, it must also include month.');
     } else {
-      validate(false, 'Invalid end date ' + data['collection_date.end']);
+      validate(!data['collection_date.end'], 'Invalid end date ' + data['collection_date.end']);
     }
   }
 
