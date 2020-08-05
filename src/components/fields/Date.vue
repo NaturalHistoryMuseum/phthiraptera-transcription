@@ -142,7 +142,7 @@ function formatDate(value, c, sort) {
 					text = value = parseInt(input, 10);
 				}
 			}
-		} else if(input.match(/[a-z]/)) {
+		} else if(input.match(/[a-z]/i)) {
 			if(!values.month) {
 				field = 'month';
 
