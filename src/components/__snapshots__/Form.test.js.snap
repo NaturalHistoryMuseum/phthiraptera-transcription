@@ -32,7 +32,8 @@ exports[`Form renders 1`] = `
         <suggest-stub name=\\"collection\\" label=\\"Institution or collection\\"></suggest-stub>
       </fieldset>
       <fieldset class=\\"Form__fieldset\\">
-        <legend>Collection Date</legend>
+        <legend>Collection Date <tooltip-stub>You can enter the start (and end) date in any combination of year, month and day (including numerals for month). E.g. <i>1888-06-25</i>, <i>ix/1916</i>, <i>Jan 1950</i></tooltip-stub>
+        </legend>
         <field-stub value=\\"[object Object]\\"></field-stub>
       </fieldset>
       <fieldset class=\\"Form__fieldset\\">
