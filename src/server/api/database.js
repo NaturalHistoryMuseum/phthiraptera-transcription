@@ -35,9 +35,13 @@ pool.on('error', (err, client) => {
 const connect = fn => async (...args) => {
   const client = await pool.connect();
 
+  const n = fn.name || fn.toString();
+
   try {
+    console.time(n);
     return await fn(client, ...args);
   } finally {
+    console.timeEnd(n);
     await client.release();
   }
 }
@@ -107,10 +111,22 @@ function validateTranscription(data, ignoreEmpty) {
  * @param {Sql} where Sql query for adding to the end of where clause
  */
 async function selectDistinct(client, field, where=empty){
+  const t = 'distinct ' + field;
+  console.time(t);
   const fieldname = raw(field);
   const select = sql`SELECT DISTINCT ${fieldname} from fields WHERE ${fieldname} is not null and ${fieldname} != '' ${where}`;
   const { rows } = await client.query(select);
+  console.timeEnd(t);
   return rows.map(c => c[field]);
+}
+
+async function getTotalBarcodes(client) {
+  if(!getTotalBarcodes.count) {
+    const r = await client.query(sql`select count(distinct(barcode)) as total from images`);
+    getTotalBarcodes.count = r.rows[0].total;
+  }
+
+  return getTotalBarcodes.count;
 }
 
 module.exports = {
@@ -279,7 +295,9 @@ module.exports = {
     return client.query(q)
   }),
   getNextBarcode: connect(async client => {
+    console.log('Getting next barcode');
     const timeoutMins = getenv('TIMEOUT_MINS', '5');
+    console.time('Get images');
     const { rows } = await client.query(`
       SELECT images.*
       FROM images
@@ -290,8 +308,10 @@ module.exports = {
           access_date IS NULL
           OR access_date < NOW() - INTERVAL '${timeoutMins} minutes'
         )
-      ORDER BY images.order;
+      ORDER BY images.order
+      LIMIT 1;
     `);
+    console.timeEnd('Get images');
 
     if (rows.length === 0) {
       return null;
@@ -299,7 +319,9 @@ module.exports = {
 
     const barcode = rows[0].barcode;
 
+    console.time('Update access date');
     await client.query(sql`UPDATE images SET access_date=NOW() WHERE barcode=${barcode}`);
+    console.timeEnd('Update access date');
 
     return barcode;
   }),
@@ -317,20 +339,26 @@ module.exports = {
     if(barcodes.length > 1) {
       scientificName = `${barcodes.length} transcriptions`
     } else {
+      console.time('Get scientific name');
       scientificName = await getScientificName(barcodes[0]);
+      console.timeEnd('Get scientific name');
     }
 
     if(editing) {
       scientificName = 'Editing ' + scientificName;
     }
 
-    const { rows: [ count ] } = await client.query(`select (select count(distinct(barcode)) from images) as total, (select count(*) from fields) as completed`);
+    console.time('Get count');
+    const total = await getTotalBarcodes(client);
+    const { rows: [ { completed } ] } = await client.query(`select count(*) as completed from fields`);
+    console.timeEnd('Get count');
 
     return {
       scientificName,
       assets,
       fields,
-      ...count
+      total,
+      completed
     };
   }),
 
@@ -351,7 +379,7 @@ module.exports = {
       return {
         collection: await selectDistinct(client, 'collection'),
         preciseLocality: await selectDistinct(client, 'precise_locality'),
-        host: await selectDistinct(client, 'host', sql`AND host != ALL(${hosts})`)
+        host: await selectDistinct(client, 'host').then(allHosts=>allHosts.filter(host=>!hosts.includes(host)))
       }
     }
   ),
