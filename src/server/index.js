@@ -66,7 +66,8 @@ app.post('/edit', async (req, res, next) => {
 
 app.get('/asset/:id', async (req, res, next) => {
   const assetId = req.param('id');
-  require('https').get(`https://www.nhm.ac.uk/services/media-store/asset/${assetId}/contents/preview`,
+  const url = `https://api.gbif.org/v1/image/unsafe/https://www.nhm.ac.uk/services/media-store/asset/${assetId}/contents/preview`;
+  require('https').get(url,
     proxyRes => {
       if(proxyRes.statusCode >= 400){
         res.status(proxyRes.statusCode);
