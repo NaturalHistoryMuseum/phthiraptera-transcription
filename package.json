@@ -37,7 +37,7 @@
     "fast-csv": "^2.5.0",
     "getenv": "^0.7.0",
     "is-port-free": "^1.0.7",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "pg": "^7.18.2",
     "pg-connection-string": "^2.2.0",
     "postgres-migrations": "github:paulkiddle/postgres-migrations",
